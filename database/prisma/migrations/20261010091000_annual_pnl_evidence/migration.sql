@@ -1,0 +1,9 @@
+BEGIN TRY
+BEGIN TRAN;
+ALTER TABLE [dbo].[ProfitGivebackSnapshot] ADD [pnlCoverage] NVARCHAR(64) NOT NULL CONSTRAINT [ProfitGivebackSnapshot_pnlCoverage_df] DEFAULT 'UNKNOWN', [pnlYear] INT;
+COMMIT TRAN;
+END TRY
+BEGIN CATCH
+IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+THROW;
+END CATCH;

@@ -1,0 +1,47 @@
+{
+  "name": "xichuquant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "XichuQuant — Quantitative Trading & Risk Management / 西楚量化交易系统",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "corepack pnpm --parallel --no-bail --filter web --filter api --filter quant-engine --filter broker-connector dev",
+    "start:prod": "corepack pnpm --parallel --no-bail --filter web --filter api --filter quant-engine --filter broker-connector start:prod",
+    "dev:web": "corepack pnpm --filter web dev",
+    "dev:api": "corepack pnpm --filter api start:dev",
+    "dev:quant": "corepack pnpm --filter quant-engine dev",
+    "dev:broker": "corepack pnpm --filter broker-connector dev",
+    "build": "corepack pnpm -r build",
+    "lint": "corepack pnpm -r lint",
+    "typecheck": "corepack pnpm -r typecheck && corepack pnpm typecheck:seed",
+    "typecheck:seed": "tsc -p database/prisma/tsconfig.json",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "corepack pnpm test:risk && corepack pnpm --filter broker-connector test && corepack pnpm --filter quant-engine test",
+    "test:visual": "playwright test",
+    "test:risk": "corepack pnpm --filter api test",
+    "db:generate": "prisma generate --schema database/prisma/schema.prisma",
+    "db:deploy": "prisma migrate deploy --schema database/prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema database/prisma/schema.prisma",
+    "db:seed": "tsx database/prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@playwright/test": "^1.61.1",
+    "eslint": "9.39.5",
+    "globals": "17.7.0",
+    "prettier": "3.9.5",
+    "prisma": "6.19.3",
+    "tsx": "4.23.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.64.0"
+  }
+}

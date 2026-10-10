@@ -1,0 +1,98 @@
+{
+  "date": "2026-10-10",
+  "timezone": "Asia/Shanghai",
+  "tests": {
+    "api": 183,
+    "connector": 20,
+    "python": 47,
+    "sql_phase_b": 4,
+    "sql_phase_c": 3,
+    "playwright": 300,
+    "total": 557
+  },
+  "evidence": [
+    {
+      "check": "setup-check-accept",
+      "private_log_sha256": "b57d2cc20528aac7ab619726e3c998b977d4d7bb4bb7d8f2fc771724ed1ad0b3"
+    },
+    {
+      "check": "setup-demo-accept",
+      "private_log_sha256": "13e7c60a93a857bf63b30df326aa21323c1ca231344c94370617e4d667ae5cc8"
+    },
+    {
+      "check": "setup-admin-admin",
+      "private_log_sha256": "0d7c524d98d202a1906c8fffeca3da4b4960d9add939066c7aee8965c248e2b9"
+    },
+    {
+      "check": "generate-accept",
+      "private_log_sha256": "3c2a4ceeb9ba2ae6fefbb4d32f8ffe831864c1cff163da928f2ba5261a185968"
+    },
+    {
+      "check": "validate-accept",
+      "private_log_sha256": "3eee8835c70956aded417a3cdb68f09e09ec50e8e0f053227045097461e1b438"
+    },
+    {
+      "check": "lint-accept",
+      "private_log_sha256": "53bb09d1060dfd70ce9b9562f89a99cb75950fe416324b58c7f7df4d69848142"
+    },
+    {
+      "check": "typecheck-accept",
+      "private_log_sha256": "c16dbbb9f4cad24d302c45cf8e5542355b59b49a27a4db698eea5fb12f57b1f4"
+    },
+    {
+      "check": "build-accept",
+      "private_log_sha256": "04cadef4585e3f0154bbfc5457ad725314d18fde5e1f9ae50f218db585d193ee"
+    },
+    {
+      "check": "unit-accept",
+      "private_log_sha256": "49dc0c0d561d53039c23de871afacf5372b6d66046d2bd9fdf941f5b3686ec8c"
+    },
+    {
+      "check": "integration-b-integration",
+      "private_log_sha256": "45a047b72c152d666793d2a7a23ec8e20fe2ee01118d4d069dae8c123f28b2d7"
+    },
+    {
+      "check": "integration-c-accept",
+      "private_log_sha256": "043a8497c3bb384b777f1c630c129e6094e1f1ec78040e38600a9daeacb14a03"
+    },
+    {
+      "check": "browser-browser",
+      "private_log_sha256": "f02d080fca54edff80e4a5422c5f6742193a21f7e575741b7d6b8a1196bf10a8"
+    },
+    {
+      "check": "health-accept",
+      "private_log_sha256": "13a233dd40f2ef2edb2ea2ea6be882d0ce700274b6f77356ee9a58e9953b93d7"
+    },
+    {
+      "check": "acceptance-accept",
+      "private_log_sha256": "539acfb5d4cfe0b112507956415b5121608a09e55aa7f6bfe2360a78f4bc4bda"
+    },
+    {
+      "check": "backup-accept",
+      "private_log_sha256": "09f1b770ed903d5ee24443ad927fa0199a6b905468c00825f3ec79ce612211a9"
+    },
+    {
+      "check": "restore-accept",
+      "private_log_sha256": "8887161d4e64c82f8f1cf55fa7eb96596c4775e7c1c6199cee8e4649cf7541f9"
+    },
+    {
+      "check": "stop-accept",
+      "private_log_sha256": "7181c6735f6b2443f69e4fac9dbf9c57d94d8f38ab049a94e3bf65936e0f6687"
+    },
+    {
+      "check": "acceptance-public",
+      "private_log_sha256": "1f5fbb34b95104d5755e78c17504b54a07c2b3100b81e3204cdefb475b1a5eb6"
+    },
+    {
+      "check": "health-public",
+      "private_log_sha256": "13a233dd40f2ef2edb2ea2ea6be882d0ce700274b6f77356ee9a58e9953b93d7"
+    },
+    {
+      "check": "stop-public",
+      "private_log_sha256": "7181c6735f6b2443f69e4fac9dbf9c57d94d8f38ab049a94e3bf65936e0f6687"
+    }
+  ],
+  "raw_logs_distributed": false,
+  "docker": "NOT_RUN",
+  "external_paper": "NOT_RUN_NO_ORDER_AUTHORIZATION"
+}

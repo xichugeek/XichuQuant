@@ -1,0 +1,53 @@
+services:
+  sqlserver:
+    networks: [backend]
+    ports: []
+
+  quant-engine:
+    networks: [backend]
+
+  broker-connector:
+    networks: [backend]
+
+  api:
+    networks: [backend, frontend]
+
+  web:
+    networks: [frontend]
+
+  reverse-proxy:
+    image: nginx:1.29-alpine
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+    mem_limit: 128m
+    cpus: 0.25
+    healthcheck:
+      test: [CMD, wget, --no-check-certificate, -q, -O, /dev/null, https://127.0.0.1/health]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    networks: [frontend]
+    ports:
+      - "80:80"
+      - "443:443"
+    read_only: true
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+    volumes:
+      - ./deploy/linux/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/linux/certs:/etc/nginx/certs:ro
+
+networks:
+  backend:
+    internal: true
+  frontend:

@@ -1,0 +1,13 @@
+{
+  "name": "quant-engine",
+  "version": "1.7.0",
+  "private": true,
+  "scripts": {
+    "build": ".venv\\Scripts\\python.exe -m compileall -q app tests",
+    "dev": ".venv\\Scripts\\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 5091 --reload",
+    "start:prod": ".venv\\Scripts\\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 5091",
+    "lint": ".venv\\Scripts\\python.exe -m ruff check app tests",
+    "test": ".venv\\Scripts\\python.exe -m pytest -q",
+    "typecheck": ".venv\\Scripts\\python.exe -m mypy app"
+  }
+}

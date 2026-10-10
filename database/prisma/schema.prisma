@@ -1,0 +1,2750 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  displayName  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  accounts Account[]
+  sessions UserSession[]
+}
+
+model UserSession {
+  id         String    @id @default(uuid())
+  userId     String
+  tokenHash  String    @unique @db.VarChar(64)
+  csrfHash   String    @db.VarChar(64)
+  expiresAt  DateTime
+  lastSeenAt DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt, revokedAt])
+}
+
+model LoginAttempt {
+  id                 String   @id @default(uuid())
+  normalizedUsername String   @db.VarChar(120)
+  addressHash        String   @db.VarChar(64)
+  succeeded          Boolean
+  occurredAt         DateTime @default(now())
+
+  @@index([normalizedUsername, addressHash, occurredAt])
+}
+
+model Account {
+  dataOrigin String @default("UNKNOWN") @db.NVarChar(32)
+  id              String   @id @default(uuid())
+  userId          String
+  name            String
+  broker          String?
+  brokerAccountId String?
+  baseCurrency    String   @default("USD")
+  initialCapital  Decimal  @default(0) @db.Decimal(18, 4)
+  totalEquity     Decimal  @db.Decimal(18, 4)
+  cashBalance     Decimal  @db.Decimal(18, 4)
+  realizedPnlYtd  Decimal  @default(0) @db.Decimal(18, 4)
+  note            String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User                    @relation(fields: [userId], references: [id])
+  positions       Position[]
+  trades          Trade[]
+  tradePlans      TradePlan[]
+  riskAlerts      RiskAlert[]
+  equitySnapshots AccountEquitySnapshot[]
+  importBatches   ImportBatch[]
+  importRecords   ImportRecord[]
+  strategySignals StrategySignal[]
+
+  @@index([userId])
+  @@index([broker, brokerAccountId])
+}
+
+model AccountEquitySnapshot {
+  id             String   @id @default(uuid())
+  accountId      String
+  snapshotDate   DateTime
+  totalEquity    Decimal  @db.Decimal(18, 4)
+  cashBalance    Decimal  @db.Decimal(18, 4)
+  realizedPnlYtd Decimal  @db.Decimal(18, 4)
+  note           String?
+  importBatchId  String?
+  createdAt      DateTime @default(now())
+
+  account     Account      @relation(fields: [accountId], references: [id])
+  importBatch ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([accountId, snapshotDate])
+  @@index([accountId, snapshotDate])
+  @@index([importBatchId])
+}
+
+model Instrument {
+  id                 String   @id @default(uuid())
+  symbol             String   @unique
+  name               String?
+  market             String?
+  assetType          String
+  category           String?
+  theme              String?
+  underlyingSymbol   String?
+  riskTheme          String?
+  sector             String?
+  industry           String?
+  leverageRatio      Decimal? @db.Decimal(8, 2)
+  leverageMultiplier Decimal  @default(1) @db.Decimal(8, 4)
+  direction          String   @default("LONG")
+  leveragedETF       Boolean  @default(false)
+  isActive           Boolean  @default(true)
+  note               String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  positions      Position[]
+  trades         Trade[]
+  priceSnapshots PriceSnapshot[]
+}
+
+model Position {
+  id           String   @id @default(uuid())
+  accountId    String
+  instrumentId String
+  quantity     Decimal  @db.Decimal(18, 6)
+  avgCost      Decimal  @db.Decimal(18, 4)
+  currentPrice Decimal  @db.Decimal(18, 4)
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  account    Account    @relation(fields: [accountId], references: [id])
+  instrument Instrument @relation(fields: [instrumentId], references: [id])
+
+  @@unique([accountId, instrumentId])
+  @@index([accountId])
+  @@index([instrumentId])
+}
+
+model Trade {
+  id             String   @id @default(uuid())
+  accountId      String
+  instrumentId   String
+  tradeDate      DateTime
+  side           String
+  quantity       Decimal  @db.Decimal(18, 6)
+  price          Decimal  @db.Decimal(18, 4)
+  commission     Decimal  @default(0) @db.Decimal(18, 4)
+  amount         Decimal  @db.Decimal(18, 4)
+  realizedPnl    Decimal? @db.Decimal(18, 4)
+  reason         String?
+  emotionTag     String?
+  isRuleFollowed Boolean?
+  note           String?
+  currency       String   @default("USD")
+  externalId     String?
+  importBatchId  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  account     Account      @relation(fields: [accountId], references: [id])
+  instrument  Instrument   @relation(fields: [instrumentId], references: [id])
+  importBatch ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([accountId])
+  @@index([instrumentId])
+  @@index([tradeDate])
+  @@index([externalId])
+  @@index([importBatchId])
+}
+
+model ImportBatch {
+  id                 String    @id @default(uuid())
+  accountId          String
+  source             String    @default("IBKR_ACTIVITY_CSV")
+  fileName           String
+  fileHash           String    @db.VarChar(64)
+  status             String    @default("PREVIEW")
+  statementAccountId String?
+  statementStart     DateTime?
+  statementEnd       DateTime?
+  totalRecords       Int       @default(0)
+  validRecords       Int       @default(0)
+  pendingRecords     Int       @default(0)
+  duplicateRecords   Int       @default(0)
+  importedRecords    Int       @default(0)
+  failedRecords      Int       @default(0)
+  resultJson         String?   @db.NVarChar(Max)
+  rollbackData       String?   @db.NVarChar(Max)
+  errorMessage       String?   @db.NVarChar(Max)
+  confirmedAt        DateTime?
+  rolledBackAt       DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  account         Account                 @relation(fields: [accountId], references: [id])
+  records         ImportRecord[]
+  trades          Trade[]
+  equitySnapshots AccountEquitySnapshot[]
+
+  @@index([accountId, createdAt])
+  @@index([fileHash])
+  @@index([status])
+}
+
+model ImportRecord {
+  id                String    @id @default(uuid())
+  batchId           String
+  accountId         String
+  sourceSection     String
+  sourceRow         Int
+  recordType        String
+  status            String    @default("VALID")
+  externalId        String    @db.VarChar(128)
+  dedupKey          String    @unique @db.VarChar(200)
+  externalAccountId String?
+  transactionDate   DateTime?
+  symbol            String?
+  currency          String?
+  action            String?
+  quantity          Decimal?  @db.Decimal(18, 6)
+  price             Decimal?  @db.Decimal(18, 6)
+  amount            Decimal?  @db.Decimal(18, 4)
+  commission        Decimal?  @db.Decimal(18, 4)
+  realizedPnl       Decimal?  @db.Decimal(18, 4)
+  rawData           String    @db.NVarChar(Max)
+  normalizedData    String    @db.NVarChar(Max)
+  validationErrors  String?   @db.NVarChar(Max)
+  resolutionNote    String?   @db.NVarChar(Max)
+  relatedEntityType String?
+  relatedEntityId   String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  batch   ImportBatch @relation(fields: [batchId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  account Account     @relation(fields: [accountId], references: [id])
+
+  @@index([batchId, status])
+  @@index([accountId, externalId])
+  @@index([recordType])
+}
+
+model TradePlan {
+  id                   String   @id @default(uuid())
+  accountId            String
+  symbol               String
+  planType             String
+  plannedAmount        Decimal  @db.Decimal(18, 4)
+  plannedPrice         Decimal? @db.Decimal(18, 4)
+  plannedQuantity      Decimal? @db.Decimal(18, 6)
+  reason               String
+  maxAcceptableLoss    Decimal? @db.Decimal(18, 4)
+  stopLossCondition    String?
+  takeProfitCondition  String?
+  holdingPeriod        String?
+  allowAddPosition     Boolean  @default(false)
+  addPositionCondition String?
+  status               String   @default("DRAFT")
+  reviewResult         String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id])
+
+  @@index([accountId])
+  @@index([symbol])
+}
+
+model RiskRule {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  ruleType    String
+  limitValue  Decimal  @db.Decimal(18, 4)
+  level       String
+  enabled     Boolean  @default(true)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model RiskAlert {
+  id              String    @id @default(uuid())
+  accountId       String
+  ruleCode        String
+  level           String
+  title           String
+  message         String
+  symbol          String?
+  currentValue    Decimal?  @db.Decimal(18, 4)
+  limitValue      Decimal?  @db.Decimal(18, 4)
+  suggestedAction String?
+  isResolved      Boolean   @default(false)
+  resolvedAt      DateTime?
+  createdAt       DateTime  @default(now())
+
+  account Account @relation(fields: [accountId], references: [id])
+
+  @@index([accountId, isResolved])
+  @@index([ruleCode])
+}
+
+model ReviewNote {
+  id             String   @id @default(uuid())
+  title          String
+  symbol         String?
+  relatedTradeId String?
+  mistakeType    String?
+  summary        String
+  lesson         String
+  actionRule     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([symbol])
+}
+
+model PriceSnapshot {
+  id           String   @id @default(uuid())
+  instrumentId String
+  price        Decimal  @db.Decimal(18, 4)
+  source       String   @default("MANUAL")
+  snapshotTime DateTime @default(now())
+
+  instrument Instrument @relation(fields: [instrumentId], references: [id])
+
+  @@index([instrumentId, snapshotTime])
+}
+
+// V1.3 行情数据中心。行情数据与真实账户、持仓和交易流水完全隔离。
+model MarketDataProvider {
+  id                String    @id @default(uuid())
+  code              String    @unique
+  name              String
+  providerType      String
+  enabled           Boolean   @default(true)
+  configJson        String?   @db.NVarChar(Max)
+  providerVersion   String?   @default("1.0")
+  rateLimitJson     String?   @db.NVarChar(Max)
+  lastHealthStatus  String?
+  lastHealthMessage String?   @db.NVarChar(Max)
+  lastHealthAt      DateTime?
+  lastSyncAt        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  dailyData          MarketDataDaily[]
+  importBatches      MarketDataImportBatch[]
+  syncJobs           MarketDataSyncJob[]
+  dataQualityReports DataQualityReport[]
+}
+
+model MarketDataDaily {
+  dataOrigin String @default("HISTORICAL") @db.NVarChar(32)
+  id            String   @id @default(uuid())
+  providerId    String
+  symbol        String
+  tradeDate     DateTime @db.Date
+  open          Decimal  @db.Decimal(20, 6)
+  high          Decimal  @db.Decimal(20, 6)
+  low           Decimal  @db.Decimal(20, 6)
+  close         Decimal  @db.Decimal(20, 6)
+  adjustedClose Decimal  @db.Decimal(20, 6)
+  volume        Decimal  @default(0) @db.Decimal(24, 4)
+  dividend      Decimal  @default(0) @db.Decimal(20, 6)
+  splitFactor   Decimal  @default(1) @db.Decimal(18, 8)
+  currency      String   @default("USD")
+  source        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  provider MarketDataProvider @relation(fields: [providerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([symbol, tradeDate, source])
+  @@index([symbol, tradeDate])
+  @@index([providerId, tradeDate])
+}
+
+model MarketDataImportBatch {
+  id               String    @id @default(uuid())
+  providerId       String
+  fileName         String
+  fileHash         String    @db.VarChar(64)
+  status           String    @default("PREVIEW")
+  symbol           String?
+  startDate        DateTime? @db.Date
+  endDate          DateTime? @db.Date
+  totalRecords     Int       @default(0)
+  validRecords     Int       @default(0)
+  pendingRecords   Int       @default(0)
+  duplicateRecords Int       @default(0)
+  importedRecords  Int       @default(0)
+  missingDaysJson  String?   @db.NVarChar(Max)
+  mappingJson      String?   @db.NVarChar(Max)
+  resultJson       String?   @db.NVarChar(Max)
+  errorMessage     String?   @db.NVarChar(Max)
+  confirmedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  provider MarketDataProvider       @relation(fields: [providerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  records  MarketDataImportRecord[]
+
+  @@index([providerId, createdAt])
+  @@index([fileHash])
+  @@index([status])
+}
+
+model MarketDataImportRecord {
+  id               String    @id @default(uuid())
+  batchId          String
+  sourceRow        Int
+  status           String    @default("VALID")
+  symbol           String?
+  tradeDate        DateTime? @db.Date
+  normalizedData   String    @db.NVarChar(Max)
+  rawData          String    @db.NVarChar(Max)
+  validationErrors String?   @db.NVarChar(Max)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  batch MarketDataImportBatch @relation(fields: [batchId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([batchId, status])
+  @@index([symbol, tradeDate])
+}
+
+model MarketDataSyncJob {
+  id           String    @id @default(uuid())
+  providerId   String
+  symbol       String?
+  startDate    DateTime? @db.Date
+  endDate      DateTime? @db.Date
+  status       String    @default("PENDING")
+  requestJson  String?   @db.NVarChar(Max)
+  resultJson   String?   @db.NVarChar(Max)
+  errorMessage String?   @db.NVarChar(Max)
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  provider MarketDataProvider @relation(fields: [providerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([providerId, createdAt])
+  @@index([status])
+}
+
+model Strategy {
+  id                 String   @id @default(uuid())
+  name               String
+  code               String   @unique
+  description        String?
+  strategyType       String
+  version            Int      @default(1)
+  symbolUniverse     String   @db.NVarChar(Max)
+  timeframe          String   @default("1D")
+  parameters         String   @db.NVarChar(Max)
+  parameterSchema    String?  @db.NVarChar(Max)
+  initialCapital     Decimal  @db.Decimal(20, 4)
+  commissionRate     Decimal  @default(0.001) @db.Decimal(12, 8)
+  slippageRate       Decimal  @default(0.0005) @db.Decimal(12, 8)
+  positionSizingMode String   @default("PERCENT_OF_EQUITY")
+  maxPositionPercent Decimal  @default(100) @db.Decimal(8, 4)
+  enabled            Boolean  @default(true)
+  approvalStatus     String   @default("DRAFT")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  backtestRuns        BacktestRun[]
+  signals             StrategySignal[]
+  validationRuns      StrategyValidationRun[]
+  parameterSweepRuns  ParameterSweepRun[]
+  stressTestRuns      StressTestRun[]
+  approvals           StrategyApproval[]
+  paperDeployments    StrategyDeployment[]
+  portfolioStrategies PortfolioStrategy[]
+
+  @@index([strategyType, enabled])
+}
+
+model BacktestRun {
+  id                 String    @id @default(uuid())
+  strategyId         String
+  status             String    @default("PENDING")
+  symbol             String
+  strategyVersion    Int
+  parameterSnapshot  String    @db.NVarChar(Max)
+  marketDataSource   String
+  marketDataStart    DateTime  @db.Date
+  marketDataEnd      DateTime  @db.Date
+  initialCapital     Decimal   @db.Decimal(20, 4)
+  commissionRate     Decimal   @db.Decimal(12, 8)
+  slippageRate       Decimal   @db.Decimal(12, 8)
+  randomSeed         Int       @default(42)
+  codeVersion        String
+  quantEngineVersion String?
+  finalEquity        Decimal?  @db.Decimal(20, 4)
+  totalReturn        Decimal?  @db.Decimal(18, 8)
+  maxDrawdown        Decimal?  @db.Decimal(18, 8)
+  sharpeRatio        Decimal?  @db.Decimal(18, 8)
+  benchmarkReturn    Decimal?  @db.Decimal(18, 8)
+  totalCommission    Decimal?  @db.Decimal(20, 4)
+  tradeCount         Int?
+  metricsJson        String?   @db.NVarChar(Max)
+  monthlyReturnsJson String?   @db.NVarChar(Max)
+  riskNotice         String?   @db.NVarChar(Max)
+  errorMessage       String?   @db.NVarChar(Max)
+  runDurationMs      Int?
+  startedAt          DateTime?
+  completedAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  strategy     Strategy              @relation(fields: [strategyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  equityPoints BacktestEquityPoint[]
+  trades       BacktestTrade[]
+  positions    BacktestPosition[]
+  signals      StrategySignal[]
+
+  @@index([strategyId, createdAt])
+  @@index([status])
+  @@index([symbol, marketDataStart, marketDataEnd])
+}
+
+model BacktestEquityPoint {
+  id              String   @id @default(uuid())
+  backtestRunId   String
+  tradeDate       DateTime @db.Date
+  equity          Decimal  @db.Decimal(20, 4)
+  cash            Decimal  @db.Decimal(20, 4)
+  positionValue   Decimal  @db.Decimal(20, 4)
+  drawdown        Decimal  @db.Decimal(18, 8)
+  benchmarkEquity Decimal  @db.Decimal(20, 4)
+  createdAt       DateTime @default(now())
+
+  backtestRun BacktestRun @relation(fields: [backtestRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([backtestRunId, tradeDate])
+  @@index([backtestRunId, tradeDate])
+}
+
+model BacktestTrade {
+  id             String   @id @default(uuid())
+  backtestRunId  String
+  symbol         String
+  side           String
+  signalTime     DateTime
+  orderTime      DateTime
+  executionTime  DateTime
+  executionPrice Decimal  @db.Decimal(20, 6)
+  quantity       Decimal  @db.Decimal(20, 8)
+  notional       Decimal  @db.Decimal(20, 4)
+  commission     Decimal  @db.Decimal(20, 4)
+  slippage       Decimal  @db.Decimal(20, 4)
+  realizedPnl    Decimal? @db.Decimal(20, 4)
+  holdingDays    Int?
+  triggerReason  String
+  createdAt      DateTime @default(now())
+
+  backtestRun BacktestRun @relation(fields: [backtestRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([backtestRunId, executionTime])
+  @@index([symbol, executionTime])
+}
+
+model BacktestPosition {
+  id            String   @id @default(uuid())
+  backtestRunId String
+  symbol        String
+  quantity      Decimal  @db.Decimal(20, 8)
+  avgCost       Decimal  @db.Decimal(20, 6)
+  lastPrice     Decimal  @db.Decimal(20, 6)
+  marketValue   Decimal  @db.Decimal(20, 4)
+  unrealizedPnl Decimal  @db.Decimal(20, 4)
+  createdAt     DateTime @default(now())
+
+  backtestRun BacktestRun @relation(fields: [backtestRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([backtestRunId, symbol])
+  @@index([backtestRunId])
+}
+
+model StrategySignal {
+  id                String    @id @default(uuid())
+  strategyId        String
+  backtestRunId     String?
+  accountId         String?
+  paperAccountId    String?
+  signalContext     String    @default("REAL_ACCOUNT")
+  symbol            String
+  signalType        String
+  signalTime        DateTime
+  requestedAmount   Decimal?  @db.Decimal(20, 4)
+  requestedQuantity Decimal?  @db.Decimal(20, 8)
+  referencePrice    Decimal?  @db.Decimal(20, 6)
+  stopLossCondition String?
+  exitCondition     String?
+  status            String    @default("GENERATED")
+  triggerReason     String
+  riskResultJson    String?   @db.NVarChar(Max)
+  rejectionReason   String?   @db.NVarChar(Max)
+  reviewedAt        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  strategy               Strategy                @relation(fields: [strategyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  backtestRun            BacktestRun?            @relation(fields: [backtestRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  account                Account?                @relation(fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  portfolioSignalIntents PortfolioSignalIntent[]
+
+  @@index([strategyId, createdAt])
+  @@index([backtestRunId, signalTime])
+  @@index([accountId, status])
+  @@index([paperAccountId, status])
+  @@index([symbol, signalTime])
+}
+
+// V1.4 策略稳健性验证。所有输入、输出和审批结论均保留快照，禁止覆盖历史结果。
+model StrategyValidationRun {
+  id                     String    @id @default(uuid())
+  strategyId             String
+  status                 String    @default("PENDING")
+  symbolsJson            String    @db.NVarChar(Max)
+  marketDataSource       String
+  marketDataStart        DateTime  @db.Date
+  marketDataEnd          DateTime  @db.Date
+  inSampleRatio          Decimal   @default(0.7) @db.Decimal(8, 6)
+  walkForwardConfigJson  String    @db.NVarChar(Max)
+  parameterGridJson      String    @db.NVarChar(Max)
+  stressConfigJson       String    @db.NVarChar(Max)
+  parameterSnapshot      String    @db.NVarChar(Max)
+  randomSeed             Int       @default(42)
+  codeVersion            String
+  quantEngineVersion     String?
+  inSampleMetricsJson    String?   @db.NVarChar(Max)
+  outSampleMetricsJson   String?   @db.NVarChar(Max)
+  regimeMetricsJson      String?   @db.NVarChar(Max)
+  crossSymbolMetricsJson String?   @db.NVarChar(Max)
+  warningsJson           String?   @db.NVarChar(Max)
+  robustnessScore        Decimal?  @db.Decimal(18, 8)
+  recommendation         String?
+  errorMessage           String?   @db.NVarChar(Max)
+  startedAt              DateTime?
+  completedAt            DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  strategy        Strategy            @relation(fields: [strategyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  windows         ValidationWindow[]
+  parameterSweeps ParameterSweepRun[]
+  stressTests     StressTestRun[]
+  approvals       StrategyApproval[]
+
+  @@index([strategyId, createdAt])
+  @@index([status])
+}
+
+model ValidationWindow {
+  id                String   @id @default(uuid())
+  validationRunId   String
+  sequence          Int
+  windowType        String
+  trainStart        DateTime @db.Date
+  trainEnd          DateTime @db.Date
+  testStart         DateTime @db.Date
+  testEnd           DateTime @db.Date
+  parameterSnapshot String   @db.NVarChar(Max)
+  trainMetricsJson  String?  @db.NVarChar(Max)
+  testMetricsJson   String   @db.NVarChar(Max)
+  testEquityJson    String?  @db.NVarChar(Max)
+  testTradesJson    String?  @db.NVarChar(Max)
+  totalReturn       Decimal? @db.Decimal(18, 8)
+  maxDrawdown       Decimal? @db.Decimal(18, 8)
+  sharpeRatio       Decimal? @db.Decimal(18, 8)
+  profitFactor      Decimal? @db.Decimal(18, 8)
+  tradeCount        Int      @default(0)
+  createdAt         DateTime @default(now())
+
+  validationRun StrategyValidationRun @relation(fields: [validationRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([validationRunId, sequence, windowType])
+  @@index([validationRunId, testStart])
+}
+
+model ParameterSweepRun {
+  id                   String    @id @default(uuid())
+  validationRunId      String
+  strategyId           String
+  status               String    @default("PENDING")
+  dimensionsJson       String    @db.NVarChar(Max)
+  objectiveMetric      String    @default("ROBUSTNESS")
+  stabilitySummaryJson String?   @db.NVarChar(Max)
+  errorMessage         String?   @db.NVarChar(Max)
+  startedAt            DateTime?
+  completedAt          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  validationRun StrategyValidationRun  @relation(fields: [validationRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  strategy      Strategy               @relation(fields: [strategyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  results       ParameterSweepResult[]
+
+  @@index([validationRunId, status])
+  @@index([strategyId, createdAt])
+}
+
+model ParameterSweepResult {
+  id             String   @id @default(uuid())
+  sweepRunId     String
+  parameterKey   String   @db.VarChar(200)
+  parametersJson String   @db.NVarChar(Max)
+  totalReturn    Decimal  @db.Decimal(18, 8)
+  maxDrawdown    Decimal  @db.Decimal(18, 8)
+  sharpeRatio    Decimal? @db.Decimal(18, 8)
+  profitFactor   Decimal? @db.Decimal(18, 8)
+  tradeCount     Int
+  stabilityScore Decimal? @db.Decimal(18, 8)
+  flagsJson      String?  @db.NVarChar(Max)
+  createdAt      DateTime @default(now())
+
+  sweepRun ParameterSweepRun @relation(fields: [sweepRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([sweepRunId, parameterKey])
+  @@index([sweepRunId, stabilityScore])
+}
+
+model StressTestRun {
+  id                  String    @id @default(uuid())
+  validationRunId     String
+  strategyId          String
+  status              String    @default("PENDING")
+  baselineMetricsJson String?   @db.NVarChar(Max)
+  summaryJson         String?   @db.NVarChar(Max)
+  errorMessage        String?   @db.NVarChar(Max)
+  startedAt           DateTime?
+  completedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  validationRun StrategyValidationRun @relation(fields: [validationRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  strategy      Strategy              @relation(fields: [strategyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  results       StressTestResult[]
+
+  @@index([validationRunId, status])
+  @@index([strategyId, createdAt])
+}
+
+model StressTestResult {
+  id                 String   @id @default(uuid())
+  stressTestRunId    String
+  scenarioCode       String
+  scenarioConfigJson String   @db.NVarChar(Max)
+  metricsJson        String   @db.NVarChar(Max)
+  totalReturn        Decimal  @db.Decimal(18, 8)
+  maxDrawdown        Decimal  @db.Decimal(18, 8)
+  returnDegradation  Decimal  @db.Decimal(18, 8)
+  tradeCount         Int
+  failed             Boolean  @default(false)
+  createdAt          DateTime @default(now())
+
+  stressTestRun StressTestRun @relation(fields: [stressTestRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([stressTestRunId, scenarioCode])
+  @@index([stressTestRunId, failed])
+}
+
+model StrategyApproval {
+  id              String    @id @default(uuid())
+  strategyId      String
+  validationRunId String
+  decisionVersion Int       @default(1)
+  status          String
+  userConfirmed   Boolean   @default(false)
+  criteriaJson    String    @db.NVarChar(Max)
+  reasonsJson     String    @db.NVarChar(Max)
+  riskResultJson  String?   @db.NVarChar(Max)
+  requestedAt     DateTime  @default(now())
+  decidedAt       DateTime?
+  createdAt       DateTime  @default(now())
+
+  strategy      Strategy              @relation(fields: [strategyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  validationRun StrategyValidationRun @relation(fields: [validationRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([validationRunId, decisionVersion])
+  @@index([strategyId, status])
+}
+
+// V1.4 模拟交易账本。Paper* 模型不得与真实 Account/Position/Trade 混用。
+model PaperAccount {
+  dataOrigin String @default("INTERNAL_PAPER") @db.NVarChar(32)
+  id                String   @id @default(uuid())
+  name              String
+  baseCurrency      String   @default("USD")
+  initialCapital    Decimal  @db.Decimal(20, 4)
+  cashBalance       Decimal  @db.Decimal(20, 4)
+  totalEquity       Decimal  @db.Decimal(20, 4)
+  realizedPnl       Decimal  @default(0) @db.Decimal(20, 4)
+  unrealizedPnl     Decimal  @default(0) @db.Decimal(20, 4)
+  peakEquity        Decimal  @db.Decimal(20, 4)
+  maxDrawdown       Decimal  @default(0) @db.Decimal(18, 8)
+  status            String   @default("ACTIVE")
+  killSwitchEnabled Boolean  @default(false)
+  killSwitchReason  String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  snapshots     PaperAccountEquitySnapshot[]
+  positions     PaperPosition[]
+  orders        PaperOrder[]
+  cashMovements PaperCashMovement[]
+  deployments   StrategyDeployment[]
+  events        PaperTradingEvent[]
+
+  @@index([status])
+}
+
+model PaperAccountEquitySnapshot {
+  id             String   @id @default(uuid())
+  paperAccountId String
+  snapshotTime   DateTime
+  totalEquity    Decimal  @db.Decimal(20, 4)
+  cashBalance    Decimal  @db.Decimal(20, 4)
+  positionValue  Decimal  @db.Decimal(20, 4)
+  realizedPnl    Decimal  @db.Decimal(20, 4)
+  unrealizedPnl  Decimal  @db.Decimal(20, 4)
+  drawdown       Decimal  @db.Decimal(18, 8)
+  source         String   @default("PAPER_EXECUTION")
+  createdAt      DateTime @default(now())
+
+  paperAccount PaperAccount @relation(fields: [paperAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([paperAccountId, snapshotTime])
+  @@index([paperAccountId, snapshotTime])
+}
+
+model PaperPosition {
+  id                   String   @id @default(uuid())
+  paperAccountId       String
+  strategyDeploymentId String
+  symbol               String
+  quantity             Decimal  @db.Decimal(20, 8)
+  avgCost              Decimal  @db.Decimal(20, 6)
+  currentPrice         Decimal  @db.Decimal(20, 6)
+  marketValue          Decimal  @db.Decimal(20, 4)
+  unrealizedPnl        Decimal  @db.Decimal(20, 4)
+  realizedPnl          Decimal  @default(0) @db.Decimal(20, 4)
+  openedAt             DateTime
+  updatedAt            DateTime @updatedAt
+
+  paperAccount PaperAccount       @relation(fields: [paperAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  deployment   StrategyDeployment @relation(fields: [strategyDeploymentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([paperAccountId, strategyDeploymentId, symbol])
+  @@index([paperAccountId, symbol])
+  @@index([strategyDeploymentId])
+}
+
+model PaperOrder {
+  id                   String    @id @default(uuid())
+  paperAccountId       String
+  strategyDeploymentId String
+  executionRunId       String
+  strategySignalId     String?
+  idempotencyKey       String    @unique @db.VarChar(200)
+  symbol               String
+  side                 String
+  signalTradeDate      DateTime  @db.Date
+  earliestFillDate     DateTime? @db.Date
+  requestedAmount      Decimal?  @db.Decimal(20, 4)
+  requestedQuantity    Decimal?  @db.Decimal(20, 8)
+  approvedQuantity     Decimal?  @db.Decimal(20, 8)
+  referencePrice       Decimal?  @db.Decimal(20, 6)
+  commissionRate       Decimal   @db.Decimal(12, 8)
+  slippageRate         Decimal   @db.Decimal(12, 8)
+  status               String    @default("CREATED")
+  rejectionReason      String?   @db.NVarChar(Max)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  filledAt             DateTime?
+  cancelledAt          DateTime?
+
+  paperAccount  PaperAccount         @relation(fields: [paperAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  deployment    StrategyDeployment   @relation(fields: [strategyDeploymentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  executionRun  StrategyExecutionRun @relation(fields: [executionRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  fills         PaperFill[]
+  riskDecisions PaperRiskDecision[]
+  events        PaperTradingEvent[]
+
+  @@index([paperAccountId, status])
+  @@index([strategyDeploymentId, signalTradeDate])
+}
+
+model PaperFill {
+  id            String   @id @default(uuid())
+  paperOrderId  String
+  fillSequence  Int      @default(1)
+  executionTime DateTime
+  price         Decimal  @db.Decimal(20, 6)
+  quantity      Decimal  @db.Decimal(20, 8)
+  notional      Decimal  @db.Decimal(20, 4)
+  commission    Decimal  @db.Decimal(20, 4)
+  slippage      Decimal  @db.Decimal(20, 4)
+  realizedPnl   Decimal? @db.Decimal(20, 4)
+  createdAt     DateTime @default(now())
+
+  paperOrder PaperOrder          @relation(fields: [paperOrderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  events     PaperTradingEvent[]
+
+  @@unique([paperOrderId, fillSequence])
+  @@index([executionTime])
+}
+
+model PaperCashMovement {
+  id             String   @id @default(uuid())
+  paperAccountId String
+  paperOrderId   String?
+  movementType   String
+  amount         Decimal  @db.Decimal(20, 4)
+  balanceAfter   Decimal  @db.Decimal(20, 4)
+  description    String?
+  eventTime      DateTime
+  createdAt      DateTime @default(now())
+
+  paperAccount PaperAccount @relation(fields: [paperAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([paperAccountId, eventTime])
+  @@index([paperOrderId])
+}
+
+model StrategyDeployment {
+  id                      String    @id @default(uuid())
+  strategyId              String
+  paperAccountId          String
+  approvalId              String
+  name                    String
+  status                  String    @default("PAPER_APPROVED")
+  symbolUniverseJson      String    @db.NVarChar(Max)
+  parameterSnapshot       String    @db.NVarChar(Max)
+  strategyVersion         Int
+  codeVersion             String
+  capitalAllocation       Decimal   @db.Decimal(20, 4)
+  maxPositionPercent      Decimal   @db.Decimal(8, 4)
+  stopLossCondition       String
+  exitCondition           String
+  paperRiskConfigJson     String    @db.NVarChar(Max)
+  consecutiveLosses       Int       @default(0)
+  observationStartedAt    DateTime?
+  observationRequiredDays Int       @default(20)
+  startedAt               DateTime?
+  pausedAt                DateTime?
+  stoppedAt               DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  strategy            Strategy                     @relation(fields: [strategyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  paperAccount        PaperAccount                 @relation(fields: [paperAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  positions           PaperPosition[]
+  orders              PaperOrder[]
+  executionRuns       StrategyExecutionRun[]
+  riskDecisions       PaperRiskDecision[]
+  events              PaperTradingEvent[]
+  forwardObservations ForwardObservationSnapshot[]
+  portfolioStrategies PortfolioStrategy[]
+
+  @@index([paperAccountId, status])
+  @@index([strategyId, createdAt])
+  @@index([approvalId])
+}
+
+model StrategyExecutionRun {
+  id                   String    @id @default(uuid())
+  strategyDeploymentId String
+  symbol               String
+  signalTradeDate      DateTime  @db.Date
+  idempotencyKey       String    @unique @db.VarChar(200)
+  strategyVersion      Int
+  status               String    @default("PENDING")
+  strategySignalId     String?
+  inputSnapshotJson    String    @db.NVarChar(Max)
+  resultJson           String?   @db.NVarChar(Max)
+  quantEngineVersion   String?
+  errorMessage         String?   @db.NVarChar(Max)
+  startedAt            DateTime  @default(now())
+  completedAt          DateTime?
+  createdAt            DateTime  @default(now())
+
+  deployment StrategyDeployment @relation(fields: [strategyDeploymentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  orders     PaperOrder[]
+
+  @@unique([strategyDeploymentId, symbol, signalTradeDate, strategyVersion])
+  @@index([strategyDeploymentId, createdAt])
+}
+
+model PaperRiskDecision {
+  id                   String   @id @default(uuid())
+  strategyDeploymentId String
+  paperOrderId         String?
+  strategySignalId     String?
+  decision             String
+  inputSnapshotJson    String   @db.NVarChar(Max)
+  resultJson           String   @db.NVarChar(Max)
+  violationsJson       String   @db.NVarChar(Max)
+  engineVersion        String
+  createdAt            DateTime @default(now())
+
+  deployment StrategyDeployment @relation(fields: [strategyDeploymentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  paperOrder PaperOrder?        @relation(fields: [paperOrderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([strategyDeploymentId, createdAt])
+  @@index([paperOrderId])
+}
+
+model PaperTradingEvent {
+  id                   String   @id @default(uuid())
+  paperAccountId       String
+  strategyDeploymentId String?
+  paperOrderId         String?
+  paperFillId          String?
+  eventType            String
+  severity             String   @default("INFO")
+  payloadJson          String   @db.NVarChar(Max)
+  createdAt            DateTime @default(now())
+
+  paperAccount PaperAccount        @relation(fields: [paperAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  deployment   StrategyDeployment? @relation(fields: [strategyDeploymentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  paperOrder   PaperOrder?         @relation(fields: [paperOrderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  paperFill    PaperFill?          @relation(fields: [paperFillId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([paperAccountId, createdAt])
+  @@index([strategyDeploymentId, createdAt])
+  @@index([eventType])
+}
+
+model PaperTradingControl {
+  id                String   @id @default("global")
+  killSwitchEnabled Boolean  @default(false)
+  reason            String?
+  updatedBy         String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// V1.5 美国市场交易日历。所有调度均使用 America/New_York，不使用服务器本地日期。
+model TradingCalendarDay {
+  id              String    @id @default(uuid())
+  market          String    @default("US")
+  tradeDate       DateTime  @db.Date
+  isTradingDay    Boolean
+  sessionOpenUtc  DateTime?
+  sessionCloseUtc DateTime?
+  holidayName     String?
+  timeZone        String    @default("America/New_York")
+  source          String    @default("SYSTEM_NYSE_RULES")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([market, tradeDate])
+  @@index([market, isTradingDay, tradeDate])
+}
+
+model DataQualityReport {
+  id                 String    @id @default(uuid())
+  providerId         String
+  symbol             String
+  analysisDate       DateTime  @db.Date
+  latestTradeDate    DateTime? @db.Date
+  missingDayCount    Int       @default(0)
+  duplicateCount     Int       @default(0)
+  invalidOhlcCount   Int       @default(0)
+  zeroVolumeCount    Int       @default(0)
+  splitEventCount    Int       @default(0)
+  dividendEventCount Int       @default(0)
+  allowStrategyRun   Boolean   @default(false)
+  status             String    @default("PENDING")
+  issuesJson         String    @db.NVarChar(Max)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  provider MarketDataProvider @relation(fields: [providerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([providerId, symbol, analysisDate])
+  @@index([symbol, analysisDate])
+  @@index([allowStrategyRun, status])
+}
+
+// 统一任务表覆盖行情同步、策略运行、撮合、权益快照和风控重算。
+model SystemTask {
+  id             String    @id @default(uuid())
+  parentTaskId   String?
+  taskType       String
+  idempotencyKey String    @unique @db.VarChar(240)
+  status         String    @default("PENDING")
+  marketDate     DateTime? @db.Date
+  scheduledFor   DateTime?
+  attemptCount   Int       @default(0)
+  maxAttempts    Int       @default(3)
+  inputJson      String?   @db.NVarChar(Max)
+  resultJson     String?   @db.NVarChar(Max)
+  errorMessage   String?   @db.NVarChar(Max)
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([taskType, status, createdAt])
+  @@index([marketDate, taskType])
+  @@index([parentTaskId])
+}
+
+model SystemNotification {
+  id           String    @id @default(uuid())
+  type         String
+  severity     String    @default("INFO")
+  title        String
+  message      String    @db.NVarChar(Max)
+  status       String    @default("UNREAD")
+  sourceTaskId String?
+  metadataJson String?   @db.NVarChar(Max)
+  dedupeKey    String?   @unique @db.VarChar(240)
+  readAt       DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status, severity, createdAt])
+  @@index([type, createdAt])
+}
+
+model ForwardObservationSnapshot {
+  id                   String   @id @default(uuid())
+  strategyDeploymentId String
+  observationDate      DateTime @db.Date
+  runningTradingDays   Int      @default(0)
+  signalCount          Int      @default(0)
+  fillCount            Int      @default(0)
+  actualReturn         Decimal  @default(0) @db.Decimal(18, 8)
+  theoreticalReturn    Decimal  @default(0) @db.Decimal(18, 8)
+  returnDeviation      Decimal  @default(0) @db.Decimal(18, 8)
+  actualSlippage       Decimal  @default(0) @db.Decimal(20, 4)
+  totalCommission      Decimal  @default(0) @db.Decimal(20, 4)
+  maxDrawdown          Decimal  @default(0) @db.Decimal(18, 8)
+  consecutiveLosses    Int      @default(0)
+  riskRejectedCount    Int      @default(0)
+  dataSkippedCount     Int      @default(0)
+  serviceSkippedCount  Int      @default(0)
+  comparisonJson       String   @db.NVarChar(Max)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  deployment StrategyDeployment @relation(fields: [strategyDeploymentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([strategyDeploymentId, observationDate])
+  @@index([strategyDeploymentId, observationDate])
+}
+
+// V1.6 组合账本。Portfolio* 模型只用于模拟组合，不得与真实 Account/Position/Trade 混用。
+model StrategyPortfolio {
+  id                 String    @id @default(uuid())
+  name               String
+  description        String?   @db.NVarChar(Max)
+  baseCurrency       String    @default("USD")
+  initialCapital     Decimal   @db.Decimal(20, 4)
+  cashBalance        Decimal   @db.Decimal(20, 4)
+  totalEquity        Decimal   @db.Decimal(20, 4)
+  realizedPnl        Decimal   @default(0) @db.Decimal(20, 4)
+  unrealizedPnl      Decimal   @default(0) @db.Decimal(20, 4)
+  peakEquity         Decimal   @db.Decimal(20, 4)
+  maxDrawdown        Decimal   @default(0) @db.Decimal(18, 8)
+  cashReservePercent Decimal   @db.Decimal(8, 4)
+  allocationMode     String
+  rebalanceMode      String
+  conflictPolicy     String    @default("NETTING")
+  status             String    @default("DRAFT")
+  noNewPositions     Boolean   @default(false)
+  readOnlyMode       Boolean   @default(false)
+  pausedAt           DateTime?
+  stoppedAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  strategies      PortfolioStrategy[]
+  allocationRules PortfolioAllocationRule[]
+  riskRules       PortfolioRiskRule[]
+  snapshots       PortfolioEquitySnapshot[]
+  rebalanceRuns   PortfolioRebalanceRun[]
+  attributions    PortfolioPerformanceAttribution[]
+  signalIntents   PortfolioSignalIntent[]
+  positions       PortfolioPosition[]
+  orders          PortfolioOrder[]
+  cashMovements   PortfolioCashMovement[]
+  auditEvents     PortfolioAuditEvent[]
+
+  @@index([status, createdAt])
+}
+
+model PortfolioStrategy {
+  id                      String   @id @default(uuid())
+  portfolioId             String
+  strategyId              String
+  strategyDeploymentId    String?
+  priority                Int      @default(100)
+  targetAllocationPercent Decimal  @default(0) @db.Decimal(8, 4)
+  manualAmount            Decimal? @db.Decimal(20, 4)
+  maxCapitalPercent       Decimal  @db.Decimal(8, 4)
+  virtualCapital          Decimal  @default(0) @db.Decimal(20, 4)
+  virtualCash             Decimal  @default(0) @db.Decimal(20, 4)
+  realizedPnl             Decimal  @default(0) @db.Decimal(20, 4)
+  status                  String   @default("ACTIVE")
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  portfolio        StrategyPortfolio                 @relation(fields: [portfolioId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  strategy         Strategy                          @relation(fields: [strategyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  deployment       StrategyDeployment?               @relation(fields: [strategyDeploymentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  positions        PortfolioStrategyPosition[]
+  signalIntents    PortfolioSignalIntent[]
+  orderAllocations PortfolioOrderAllocation[]
+  fillAllocations  PortfolioFillAllocation[]
+  attributions     PortfolioPerformanceAttribution[]
+  cashMovements    PortfolioCashMovement[]
+  auditEvents      PortfolioAuditEvent[]
+
+  @@unique([portfolioId, strategyId])
+  @@index([portfolioId, status, priority])
+  @@index([strategyDeploymentId])
+}
+
+// 分配和风控规则按 version 追加，不覆盖历史参数。
+model PortfolioAllocationRule {
+  id                String   @id @default(uuid())
+  portfolioId       String
+  version           Int
+  allocationMode    String
+  configurationJson String   @db.NVarChar(Max)
+  effectiveFrom     DateTime @default(now())
+  createdAt         DateTime @default(now())
+
+  portfolio StrategyPortfolio @relation(fields: [portfolioId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([portfolioId, version])
+  @@index([portfolioId, effectiveFrom])
+}
+
+model PortfolioRiskRule {
+  id                                     String   @id @default(uuid())
+  portfolioId                            String
+  version                                Int
+  singleStrategyMaxPercent               Decimal  @default(40) @db.Decimal(8, 4)
+  singleSymbolMaxPercent                 Decimal  @default(30) @db.Decimal(8, 4)
+  singleThemeMaxPercent                  Decimal  @default(40) @db.Decimal(8, 4)
+  leveragedEtfMaxPercent                 Decimal  @default(10) @db.Decimal(8, 4)
+  leveragedStrategyMaxPercent            Decimal  @default(20) @db.Decimal(8, 4)
+  correlatedStrategiesMaxPercent         Decimal  @default(50) @db.Decimal(8, 4)
+  correlationThreshold                   Decimal  @default(0.8) @db.Decimal(8, 6)
+  maxConcurrentPositions                 Int      @default(10)
+  minCashPercent                         Decimal  @default(20) @db.Decimal(8, 4)
+  maxDailyLossPercent                    Decimal  @default(3) @db.Decimal(8, 4)
+  maxDrawdownPercent                     Decimal  @default(15) @db.Decimal(8, 4)
+  maxLosingStrategies                    Int      @default(2)
+  maxStrategyDrawdownContributionPercent Decimal  @default(50) @db.Decimal(8, 4)
+  createdAt                              DateTime @default(now())
+
+  portfolio StrategyPortfolio @relation(fields: [portfolioId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([portfolioId, version])
+  @@index([portfolioId, createdAt])
+}
+
+model PortfolioEquitySnapshot {
+  id              String   @id @default(uuid())
+  portfolioId     String
+  snapshotDate    DateTime @db.Date
+  totalEquity     Decimal  @db.Decimal(20, 4)
+  cashBalance     Decimal  @db.Decimal(20, 4)
+  positionValue   Decimal  @db.Decimal(20, 4)
+  realizedPnl     Decimal  @db.Decimal(20, 4)
+  unrealizedPnl   Decimal  @db.Decimal(20, 4)
+  totalReturn     Decimal  @db.Decimal(18, 8)
+  dailyReturn     Decimal  @default(0) @db.Decimal(18, 8)
+  drawdown        Decimal  @db.Decimal(18, 8)
+  benchmarkEquity Decimal? @db.Decimal(20, 4)
+  exposureJson    String   @db.NVarChar(Max)
+  createdAt       DateTime @default(now())
+
+  portfolio StrategyPortfolio @relation(fields: [portfolioId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([portfolioId, snapshotDate])
+  @@index([portfolioId, snapshotDate])
+}
+
+model PortfolioRebalanceRun {
+  id                   String    @id @default(uuid())
+  portfolioId          String
+  tradeDate            DateTime  @db.Date
+  idempotencyKey       String    @unique @db.VarChar(240)
+  runType              String
+  status               String    @default("PREVIEWED")
+  allocationVersion    Int
+  riskVersion          Int
+  conflictPolicy       String
+  beforeAllocationJson String    @db.NVarChar(Max)
+  afterAllocationJson  String    @db.NVarChar(Max)
+  rawSignalsJson       String    @db.NVarChar(Max)
+  netIntentsJson       String    @db.NVarChar(Max)
+  estimatedOrdersJson  String    @db.NVarChar(Max)
+  riskResultJson       String    @db.NVarChar(Max)
+  estimatedCommission  Decimal   @default(0) @db.Decimal(20, 4)
+  estimatedCash        Decimal   @db.Decimal(20, 4)
+  previewOnly          Boolean   @default(true)
+  errorMessage         String?   @db.NVarChar(Max)
+  completedAt          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  portfolio     StrategyPortfolio       @relation(fields: [portfolioId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  signalIntents PortfolioSignalIntent[]
+  orders        PortfolioOrder[]
+  auditEvents   PortfolioAuditEvent[]
+
+  @@unique([portfolioId, tradeDate, runType])
+  @@index([portfolioId, createdAt])
+  @@index([status, tradeDate])
+}
+
+model PortfolioPerformanceAttribution {
+  id                    String   @id @default(uuid())
+  portfolioId           String
+  portfolioStrategyId   String
+  attributionDate       DateTime @db.Date
+  strategyReturn        Decimal  @default(0) @db.Decimal(18, 8)
+  allocatedContribution Decimal  @default(0) @db.Decimal(18, 8)
+  riskContribution      Decimal  @default(0) @db.Decimal(18, 8)
+  commissionImpact      Decimal  @default(0) @db.Decimal(20, 4)
+  slippageImpact        Decimal  @default(0) @db.Decimal(20, 4)
+  riskOpportunityCost   Decimal  @default(0) @db.Decimal(20, 4)
+  cashDrag              Decimal  @default(0) @db.Decimal(20, 4)
+  detailsJson           String   @db.NVarChar(Max)
+  createdAt             DateTime @default(now())
+
+  portfolio         StrategyPortfolio @relation(fields: [portfolioId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  portfolioStrategy PortfolioStrategy @relation(fields: [portfolioStrategyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([portfolioId, portfolioStrategyId, attributionDate])
+  @@index([portfolioId, attributionDate])
+}
+
+model PortfolioSignalIntent {
+  id                  String   @id @default(uuid())
+  portfolioId         String
+  portfolioStrategyId String
+  rebalanceRunId      String
+  strategySignalId    String?
+  idempotencyKey      String   @unique @db.VarChar(240)
+  tradeDate           DateTime @db.Date
+  symbol              String
+  side                String
+  originalQuantity    Decimal? @db.Decimal(20, 8)
+  originalAmount      Decimal? @db.Decimal(20, 4)
+  approvedQuantity    Decimal? @db.Decimal(20, 8)
+  allocatedAmount     Decimal? @db.Decimal(20, 4)
+  status              String   @default("PENDING")
+  reason              String?  @db.NVarChar(Max)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  portfolio         StrategyPortfolio          @relation(fields: [portfolioId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  portfolioStrategy PortfolioStrategy          @relation(fields: [portfolioStrategyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  rebalanceRun      PortfolioRebalanceRun      @relation(fields: [rebalanceRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  strategySignal    StrategySignal?            @relation(fields: [strategySignalId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  orderAllocations  PortfolioOrderAllocation[]
+  fillAllocations   PortfolioFillAllocation[]
+
+  @@index([portfolioId, tradeDate, symbol])
+  @@index([portfolioStrategyId, tradeDate])
+  @@index([strategySignalId])
+}
+
+model PortfolioPosition {
+  id            String   @id @default(uuid())
+  portfolioId   String
+  symbol        String
+  assetType     String
+  theme         String?
+  quantity      Decimal  @db.Decimal(20, 8)
+  avgCost       Decimal  @db.Decimal(20, 6)
+  currentPrice  Decimal  @db.Decimal(20, 6)
+  marketValue   Decimal  @db.Decimal(20, 4)
+  unrealizedPnl Decimal  @db.Decimal(20, 4)
+  realizedPnl   Decimal  @default(0) @db.Decimal(20, 4)
+  openedAt      DateTime
+  updatedAt     DateTime @updatedAt
+
+  portfolio StrategyPortfolio @relation(fields: [portfolioId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([portfolioId, symbol])
+  @@index([portfolioId, assetType, theme])
+}
+
+model PortfolioStrategyPosition {
+  id                  String   @id @default(uuid())
+  portfolioStrategyId String
+  symbol              String
+  quantity            Decimal  @db.Decimal(20, 8)
+  avgCost             Decimal  @db.Decimal(20, 6)
+  currentPrice        Decimal  @db.Decimal(20, 6)
+  marketValue         Decimal  @db.Decimal(20, 4)
+  unrealizedPnl       Decimal  @db.Decimal(20, 4)
+  realizedPnl         Decimal  @default(0) @db.Decimal(20, 4)
+  openedAt            DateTime
+  updatedAt           DateTime @updatedAt
+
+  portfolioStrategy PortfolioStrategy @relation(fields: [portfolioStrategyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([portfolioStrategyId, symbol])
+  @@index([portfolioStrategyId])
+}
+
+model PortfolioOrder {
+  id                String    @id @default(uuid())
+  portfolioId       String
+  rebalanceRunId    String
+  idempotencyKey    String    @unique @db.VarChar(240)
+  symbol            String
+  side              String
+  signalTradeDate   DateTime  @db.Date
+  earliestFillDate  DateTime? @db.Date
+  requestedAmount   Decimal?  @db.Decimal(20, 4)
+  requestedQuantity Decimal?  @db.Decimal(20, 8)
+  approvedQuantity  Decimal?  @db.Decimal(20, 8)
+  referencePrice    Decimal?  @db.Decimal(20, 6)
+  commissionRate    Decimal   @db.Decimal(12, 8)
+  slippageRate      Decimal   @db.Decimal(12, 8)
+  status            String    @default("CREATED")
+  rejectionReason   String?   @db.NVarChar(Max)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  filledAt          DateTime?
+  cancelledAt       DateTime?
+
+  portfolio     StrategyPortfolio          @relation(fields: [portfolioId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  rebalanceRun  PortfolioRebalanceRun      @relation(fields: [rebalanceRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  allocations   PortfolioOrderAllocation[]
+  fills         PortfolioFill[]
+  cashMovements PortfolioCashMovement[]
+  auditEvents   PortfolioAuditEvent[]
+
+  @@index([portfolioId, status])
+  @@index([rebalanceRunId, symbol])
+}
+
+model PortfolioOrderAllocation {
+  id                      String   @id @default(uuid())
+  portfolioOrderId        String
+  portfolioSignalIntentId String
+  portfolioStrategyId     String
+  quantity                Decimal  @db.Decimal(20, 8)
+  notionalPercent         Decimal  @db.Decimal(18, 8)
+  createdAt               DateTime @default(now())
+
+  portfolioOrder    PortfolioOrder        @relation(fields: [portfolioOrderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  signalIntent      PortfolioSignalIntent @relation(fields: [portfolioSignalIntentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  portfolioStrategy PortfolioStrategy     @relation(fields: [portfolioStrategyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([portfolioOrderId, portfolioSignalIntentId])
+  @@index([portfolioStrategyId])
+}
+
+model PortfolioFill {
+  id               String   @id @default(uuid())
+  portfolioOrderId String
+  fillSequence     Int      @default(1)
+  executionTime    DateTime
+  price            Decimal  @db.Decimal(20, 6)
+  quantity         Decimal  @db.Decimal(20, 8)
+  notional         Decimal  @db.Decimal(20, 4)
+  commission       Decimal  @db.Decimal(20, 4)
+  slippage         Decimal  @db.Decimal(20, 4)
+  createdAt        DateTime @default(now())
+
+  portfolioOrder PortfolioOrder            @relation(fields: [portfolioOrderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  allocations    PortfolioFillAllocation[]
+
+  @@unique([portfolioOrderId, fillSequence])
+  @@index([executionTime])
+}
+
+model PortfolioFillAllocation {
+  id                      String   @id @default(uuid())
+  portfolioFillId         String
+  portfolioStrategyId     String
+  portfolioSignalIntentId String?
+  quantity                Decimal  @db.Decimal(20, 8)
+  notional                Decimal  @db.Decimal(20, 4)
+  commission              Decimal  @db.Decimal(20, 4)
+  slippage                Decimal  @db.Decimal(20, 4)
+  realizedPnl             Decimal? @db.Decimal(20, 4)
+  createdAt               DateTime @default(now())
+
+  portfolioFill     PortfolioFill          @relation(fields: [portfolioFillId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  portfolioStrategy PortfolioStrategy      @relation(fields: [portfolioStrategyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  signalIntent      PortfolioSignalIntent? @relation(fields: [portfolioSignalIntentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([portfolioFillId, portfolioStrategyId])
+  @@index([portfolioStrategyId, createdAt])
+}
+
+model PortfolioCashMovement {
+  id                  String   @id @default(uuid())
+  portfolioId         String
+  portfolioStrategyId String?
+  portfolioOrderId    String?
+  idempotencyKey      String   @unique @db.VarChar(240)
+  movementType        String
+  amount              Decimal  @db.Decimal(20, 4)
+  balanceAfter        Decimal  @db.Decimal(20, 4)
+  description         String?  @db.NVarChar(Max)
+  eventTime           DateTime
+  createdAt           DateTime @default(now())
+
+  portfolio         StrategyPortfolio  @relation(fields: [portfolioId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  portfolioStrategy PortfolioStrategy? @relation(fields: [portfolioStrategyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  portfolioOrder    PortfolioOrder?    @relation(fields: [portfolioOrderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([portfolioId, eventTime])
+  @@index([portfolioStrategyId, eventTime])
+}
+
+model PortfolioAuditEvent {
+  id                  String   @id @default(uuid())
+  portfolioId         String
+  portfolioStrategyId String?
+  rebalanceRunId      String?
+  portfolioOrderId    String?
+  eventType           String
+  severity            String   @default("INFO")
+  payloadJson         String   @db.NVarChar(Max)
+  createdAt           DateTime @default(now())
+
+  portfolio         StrategyPortfolio      @relation(fields: [portfolioId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  portfolioStrategy PortfolioStrategy?     @relation(fields: [portfolioStrategyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  rebalanceRun      PortfolioRebalanceRun? @relation(fields: [rebalanceRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  portfolioOrder    PortfolioOrder?        @relation(fields: [portfolioOrderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([portfolioId, createdAt])
+  @@index([eventType, severity])
+}
+
+model BrokerConnection {
+  id                   String    @id @default(uuid())
+  provider             String
+  displayName          String
+  environment          String
+  runMode              String    @default("OFFLINE")
+  safetyState          String    @default("READ_ONLY")
+  connectorUrl         String
+  status               String    @default("OFFLINE")
+  capabilitiesJson     String    @db.NVarChar(Max)
+  lastConnectedAt      DateTime?
+  lastHeartbeatAt      DateTime?
+  lastSyncAt           DateTime?
+  lastErrorAt          DateTime?
+  lastErrorMessage     String?   @db.NVarChar(Max)
+  enabled              Boolean   @default(false)
+  autoReconciliation   Boolean   @default(false)
+  shadowTradingEnabled Boolean   @default(false)
+  staleAfterSeconds    Int       @default(900)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  accounts  BrokerAccount[]
+  syncJobs  BrokerSyncJob[]
+  auditLogs BrokerAuditLog[]
+
+  @@index([provider, environment])
+  @@index([status, enabled])
+}
+
+model BrokerAccount {
+  dataOrigin String @default("UNKNOWN") @db.NVarChar(32)
+  id                  String    @id @default(uuid())
+  brokerConnectionId  String
+  localAccountId      String?
+  externalAccountId   String    @db.VarChar(64)
+  externalIdFormat    String    @default("SHA256")
+  maskedAccountNumber String
+  accountType         String
+  baseCurrency        String    @default("USD")
+  status              String    @default("STALE")
+  lastSyncedAt        DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  brokerConnection      BrokerConnection           @relation(fields: [brokerConnectionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  snapshots             BrokerAccountSnapshot[]
+  cashBalances          BrokerCashBalance[]
+  positionSnapshots     BrokerPositionSnapshot[]
+  executions            BrokerExecution[]
+  orderSnapshots        BrokerOrderSnapshot[]
+  corporateActions      BrokerCorporateAction[]
+  reconciliationRuns    AccountReconciliationRun[]
+  shadowTradingSessions ShadowTradingSession[]
+  auditLogs             BrokerAuditLog[]
+
+  @@unique([brokerConnectionId, externalAccountId])
+  @@index([localAccountId])
+  @@index([status, lastSyncedAt])
+}
+
+model BrokerAccountSnapshot {
+  id                 String   @id @default(uuid())
+  brokerAccountId    String
+  snapshotTime       DateTime
+  netLiquidation     Decimal  @db.Decimal(18, 4)
+  totalCash          Decimal  @db.Decimal(18, 4)
+  settledCash        Decimal  @db.Decimal(18, 4)
+  availableFunds     Decimal  @db.Decimal(18, 4)
+  buyingPower        Decimal  @db.Decimal(18, 4)
+  grossPositionValue Decimal  @db.Decimal(18, 4)
+  realizedPnl        Decimal  @db.Decimal(18, 4)
+  unrealizedPnl      Decimal  @db.Decimal(18, 4)
+  currency           String
+  source             String
+  syncJobId          String
+  createdAt          DateTime @default(now())
+
+  brokerAccount BrokerAccount @relation(fields: [brokerAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  syncJob       BrokerSyncJob @relation(fields: [syncJobId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([brokerAccountId, snapshotTime])
+  @@index([brokerAccountId, snapshotTime])
+  @@index([syncJobId])
+}
+
+model BrokerCashBalance {
+  id              String   @id @default(uuid())
+  brokerAccountId String
+  currency        String
+  totalCash       Decimal  @db.Decimal(18, 4)
+  settledCash     Decimal  @db.Decimal(18, 4)
+  availableCash   Decimal  @db.Decimal(18, 4)
+  snapshotTime    DateTime
+  syncJobId       String
+  createdAt       DateTime @default(now())
+
+  brokerAccount BrokerAccount @relation(fields: [brokerAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  syncJob       BrokerSyncJob @relation(fields: [syncJobId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([brokerAccountId, currency, snapshotTime])
+  @@index([syncJobId])
+}
+
+model BrokerPositionSnapshot {
+  id                 String   @id @default(uuid())
+  brokerAccountId    String
+  instrumentId       String?
+  externalContractId String
+  symbol             String
+  quantity           Decimal  @db.Decimal(18, 6)
+  averageCost        Decimal  @db.Decimal(18, 6)
+  marketPrice        Decimal  @db.Decimal(18, 6)
+  marketValue        Decimal  @db.Decimal(18, 4)
+  unrealizedPnl      Decimal  @db.Decimal(18, 4)
+  currency           String
+  mappingStatus      String   @default("MAPPED")
+  snapshotTime       DateTime
+  syncJobId          String
+  createdAt          DateTime @default(now())
+
+  brokerAccount BrokerAccount @relation(fields: [brokerAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  syncJob       BrokerSyncJob @relation(fields: [syncJobId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([brokerAccountId, symbol, snapshotTime])
+  @@index([instrumentId])
+  @@index([syncJobId])
+}
+
+model BrokerExecution {
+  id                  String   @id @default(uuid())
+  deduplicationKey    String   @unique @db.VarChar(64)
+  externalExecutionId String?
+  brokerAccountId     String
+  instrumentId        String?
+  symbol              String
+  side                String
+  quantity            Decimal  @db.Decimal(18, 6)
+  price               Decimal  @db.Decimal(18, 6)
+  commission          Decimal? @db.Decimal(18, 4)
+  commissionKnown     Boolean  @default(false)
+  currency            String
+  executionTime       DateTime
+  tradeDate           DateTime
+  exchange            String
+  orderReference      String?
+  syncJobId           String
+  rawDataHash         String   @db.VarChar(64)
+  reviewStatus        String   @default("ACCEPTED")
+  createdAt           DateTime @default(now())
+
+  brokerAccount BrokerAccount @relation(fields: [brokerAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  syncJob       BrokerSyncJob @relation(fields: [syncJobId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([brokerAccountId, executionTime])
+  @@index([syncJobId])
+}
+
+model BrokerOrderSnapshot {
+  id               String   @id @default(uuid())
+  deduplicationKey String   @unique @db.VarChar(64)
+  brokerAccountId  String
+  externalOrderId  String
+  symbol           String
+  side             String
+  orderType        String
+  quantity         Decimal  @db.Decimal(18, 6)
+  filledQuantity   Decimal  @db.Decimal(18, 6)
+  limitPrice       Decimal? @db.Decimal(18, 6)
+  averageFillPrice Decimal? @db.Decimal(18, 6)
+  currency         String
+  status           String
+  orderTime        DateTime
+  snapshotTime     DateTime
+  syncJobId        String
+  rawDataHash      String   @db.VarChar(64)
+  createdAt        DateTime @default(now())
+
+  brokerAccount BrokerAccount @relation(fields: [brokerAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  syncJob       BrokerSyncJob @relation(fields: [syncJobId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([brokerAccountId, snapshotTime])
+  @@index([syncJobId])
+}
+
+model BrokerCorporateAction {
+  id               String   @id @default(uuid())
+  deduplicationKey String   @unique @db.VarChar(64)
+  brokerAccountId  String
+  externalActionId String?
+  symbol           String
+  actionType       String
+  actionDate       DateTime
+  ratio            Decimal? @db.Decimal(18, 8)
+  amount           Decimal? @db.Decimal(18, 4)
+  currency         String
+  syncJobId        String
+  rawDataHash      String   @db.VarChar(64)
+  reviewStatus     String   @default("ACCEPTED")
+  createdAt        DateTime @default(now())
+
+  brokerAccount BrokerAccount @relation(fields: [brokerAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  syncJob       BrokerSyncJob @relation(fields: [syncJobId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([brokerAccountId, actionDate])
+  @@index([syncJobId])
+}
+
+model BrokerSyncJob {
+  id                   String    @id @default(uuid())
+  brokerConnectionId   String
+  idempotencyKey       String    @unique
+  status               String    @default("PENDING")
+  requestedFrom        DateTime?
+  requestedTo          DateTime?
+  startedAt            DateTime?
+  completedAt          DateTime?
+  retryCount           Int       @default(0)
+  accountCount         Int       @default(0)
+  snapshotCount        Int       @default(0)
+  positionCount        Int       @default(0)
+  executionCount       Int       @default(0)
+  orderCount           Int       @default(0)
+  corporateActionCount Int       @default(0)
+  errorMessage         String?   @db.NVarChar(Max)
+  resultJson           String?   @db.NVarChar(Max)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  brokerConnection BrokerConnection         @relation(fields: [brokerConnectionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  records          BrokerSyncRecord[]
+  accountSnapshots BrokerAccountSnapshot[]
+  cashBalances     BrokerCashBalance[]
+  positions        BrokerPositionSnapshot[]
+  executions       BrokerExecution[]
+  orderSnapshots   BrokerOrderSnapshot[]
+  corporateActions BrokerCorporateAction[]
+  auditLogs        BrokerAuditLog[]
+
+  @@index([brokerConnectionId, createdAt])
+  @@index([status, createdAt])
+}
+
+model BrokerSyncRecord {
+  id           String   @id @default(uuid())
+  syncJobId    String
+  recordType   String
+  externalKey  String?
+  status       String
+  message      String?  @db.NVarChar(Max)
+  payloadHash  String?  @db.VarChar(64)
+  reviewStatus String   @default("ACCEPTED")
+  createdAt    DateTime @default(now())
+
+  syncJob BrokerSyncJob @relation(fields: [syncJobId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([syncJobId, recordType])
+  @@index([reviewStatus, createdAt])
+}
+
+model AccountReconciliationRun {
+  id                      String    @id @default(uuid())
+  brokerAccountId         String
+  localAccountId          String
+  status                  String    @default("PENDING")
+  startedAt               DateTime
+  completedAt             DateTime?
+  brokerSnapshotTime      DateTime
+  localSnapshotTime       DateTime
+  differenceCount         Int       @default(0)
+  criticalDifferenceCount Int       @default(0)
+  summaryJson             String    @db.NVarChar(Max)
+  createdAt               DateTime  @default(now())
+
+  brokerAccount BrokerAccount                     @relation(fields: [brokerAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  differences   AccountReconciliationDifference[]
+  decisions     ReconciliationDecision[]
+  auditLogs     BrokerAuditLog[]
+
+  @@index([brokerAccountId, createdAt])
+  @@index([localAccountId, createdAt])
+}
+
+model AccountReconciliationDifference {
+  id                   String    @id @default(uuid())
+  reconciliationRunId  String
+  differenceType       String
+  symbol               String?
+  fieldName            String
+  brokerValue          String?
+  localValue           String?
+  absoluteDifference   Decimal?  @db.Decimal(18, 6)
+  percentageDifference Decimal?  @db.Decimal(18, 6)
+  severity             String
+  status               String    @default("OPEN")
+  suggestedAction      String
+  createdAt            DateTime  @default(now())
+  resolvedAt           DateTime?
+
+  reconciliationRun AccountReconciliationRun @relation(fields: [reconciliationRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  decisions         ReconciliationDecision[]
+
+  @@index([reconciliationRunId, status])
+  @@index([severity, status])
+}
+
+model ReconciliationDecision {
+  id                         String   @id @default(uuid())
+  reconciliationRunId        String
+  reconciliationDifferenceId String
+  decision                   String
+  operatorId                 String
+  reason                     String   @db.NVarChar(Max)
+  originalValue              String?
+  acceptedValue              String?
+  adjustmentJson             String?  @db.NVarChar(Max)
+  createdAt                  DateTime @default(now())
+
+  reconciliationRun        AccountReconciliationRun        @relation(fields: [reconciliationRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reconciliationDifference AccountReconciliationDifference @relation(fields: [reconciliationDifferenceId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([reconciliationRunId, createdAt])
+  @@index([reconciliationDifferenceId, createdAt])
+}
+
+model ShadowTradingSession {
+  id                 String    @id @default(uuid())
+  brokerAccountId    String
+  localAccountId     String
+  strategyId         String?
+  portfolioId        String?
+  status             String    @default("OBSERVING")
+  startedAt          DateTime
+  completedAt        DateTime?
+  brokerSnapshotTime DateTime
+  initialEquity      Decimal   @db.Decimal(18, 4)
+  initialCash        Decimal   @db.Decimal(18, 4)
+  currentEquity      Decimal   @db.Decimal(18, 4)
+  currentCash        Decimal   @db.Decimal(18, 4)
+  idempotencyKey     String    @unique
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  brokerAccount BrokerAccount               @relation(fields: [brokerAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  signals       ShadowSignal[]
+  orderIntents  ShadowOrderIntent[]
+  fills         ShadowFill[]
+  performance   ShadowPerformanceSnapshot[]
+  auditLogs     BrokerAuditLog[]
+
+  @@index([brokerAccountId, startedAt])
+  @@index([status, startedAt])
+}
+
+model ShadowSignal {
+  id               String   @id @default(uuid())
+  shadowSessionId  String
+  strategySignalId String?
+  strategyId       String?
+  symbol           String
+  signalDate       DateTime
+  side             String
+  quantity         Decimal  @db.Decimal(18, 6)
+  referencePrice   Decimal  @db.Decimal(18, 6)
+  status           String
+  riskDecisionJson String?  @db.NVarChar(Max)
+  idempotencyKey   String   @unique
+  createdAt        DateTime @default(now())
+
+  shadowSession ShadowTradingSession @relation(fields: [shadowSessionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  orderIntents  ShadowOrderIntent[]
+
+  @@index([shadowSessionId, signalDate])
+}
+
+model ShadowOrderIntent {
+  id                 String   @id @default(uuid())
+  shadowSessionId    String
+  shadowSignalId     String
+  symbol             String
+  side               String
+  quantity           Decimal  @db.Decimal(18, 6)
+  theoreticalPrice   Decimal  @db.Decimal(18, 6)
+  theoreticalOrderAt DateTime
+  status             String
+  singleRiskJson     String   @db.NVarChar(Max)
+  portfolioRiskJson  String?  @db.NVarChar(Max)
+  rejectionReason    String?  @db.NVarChar(Max)
+  idempotencyKey     String   @unique
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  shadowSession ShadowTradingSession @relation(fields: [shadowSessionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  shadowSignal  ShadowSignal         @relation(fields: [shadowSignalId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  fills         ShadowFill[]
+
+  @@index([shadowSessionId, theoreticalOrderAt])
+  @@index([status, theoreticalOrderAt])
+}
+
+model ShadowFill {
+  id                  String   @id @default(uuid())
+  shadowSessionId     String
+  shadowOrderIntentId String
+  symbol              String
+  side                String
+  quantity            Decimal  @db.Decimal(18, 6)
+  fillPrice           Decimal  @db.Decimal(18, 6)
+  commission          Decimal  @db.Decimal(18, 4)
+  slippage            Decimal  @db.Decimal(18, 4)
+  fillTime            DateTime
+  marketDataSource    String
+  idempotencyKey      String   @unique
+  createdAt           DateTime @default(now())
+
+  shadowSession     ShadowTradingSession @relation(fields: [shadowSessionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  shadowOrderIntent ShadowOrderIntent    @relation(fields: [shadowOrderIntentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([shadowSessionId, fillTime])
+}
+
+model ShadowPerformanceSnapshot {
+  id                   String   @id @default(uuid())
+  shadowSessionId      String
+  snapshotTime         DateTime
+  totalEquity          Decimal  @db.Decimal(18, 4)
+  cashBalance          Decimal  @db.Decimal(18, 4)
+  totalReturn          Decimal  @db.Decimal(18, 8)
+  maxDrawdown          Decimal  @db.Decimal(18, 8)
+  realizedPnl          Decimal  @db.Decimal(18, 4)
+  unrealizedPnl        Decimal  @db.Decimal(18, 4)
+  benchmarkReturn      Decimal? @db.Decimal(18, 8)
+  paperDeviation       Decimal? @db.Decimal(18, 8)
+  manualTradeDeviation Decimal? @db.Decimal(18, 8)
+  opportunityPnl       Decimal? @db.Decimal(18, 4)
+  createdAt            DateTime @default(now())
+
+  shadowSession ShadowTradingSession @relation(fields: [shadowSessionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([shadowSessionId, snapshotTime])
+}
+
+model BrokerAuditLog {
+  id                     String   @id @default(uuid())
+  brokerConnectionId     String
+  brokerAccountId        String?
+  syncJobId              String?
+  reconciliationRunId    String?
+  shadowTradingSessionId String?
+  eventType              String
+  severity               String   @default("INFO")
+  actorId                String?
+  message                String   @db.NVarChar(Max)
+  detailsJson            String   @db.NVarChar(Max)
+  createdAt              DateTime @default(now())
+
+  brokerConnection     BrokerConnection          @relation(fields: [brokerConnectionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  brokerAccount        BrokerAccount?            @relation(fields: [brokerAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  syncJob              BrokerSyncJob?            @relation(fields: [syncJobId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reconciliationRun    AccountReconciliationRun? @relation(fields: [reconciliationRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  shadowTradingSession ShadowTradingSession?     @relation(fields: [shadowTradingSessionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([brokerConnectionId, createdAt])
+  @@index([eventType, severity, createdAt])
+}
+
+model BrokerOrderProposal {
+  id                      String   @id @default(uuid())
+  strategyId              String?
+  strategyDeploymentId    String?
+  strategyVersion         String
+  portfolioId             String?
+  brokerAccountId         String
+  symbol                  String
+  contractId              String
+  side                    String
+  orderType               String
+  quantity                Decimal  @db.Decimal(18, 6)
+  limitPrice              Decimal? @db.Decimal(18, 6)
+  stopPrice               Decimal? @db.Decimal(18, 6)
+  timeInForce             String
+  outsideRth              Boolean  @default(false)
+  allowPartialFill        Boolean  @default(true)
+  maxSlippage             Decimal  @db.Decimal(18, 6)
+  expirationTime          DateTime
+  estimatedValue          Decimal  @db.Decimal(18, 4)
+  estimatedCommission     Decimal  @db.Decimal(18, 4)
+  entryPrice              Decimal? @db.Decimal(18, 6)
+  plannedStopPrice        Decimal? @db.Decimal(18, 6)
+  exitCondition           String?  @db.NVarChar(1000)
+  plannedLoss             Decimal? @db.Decimal(18, 4)
+  plannedLossPct          Decimal? @db.Decimal(10, 6)
+  allowOvernight          Boolean?
+  gapStressJson           String?  @db.NVarChar(Max)
+  predefinedScalePlanId   String?
+  predefinedScaleVersion  Int?
+  signalId                String?
+  riskDecisionId          String
+  portfolioRiskDecisionId String?
+  idempotencyKey          String   @unique @db.VarChar(240)
+  proposalVersion         Int      @default(1)
+  proposalSnapshotJson    String   @db.NVarChar(Max)
+  proposalHash            String   @db.VarChar(64)
+  status                  String   @default("DRAFT")
+  correlationId           String   @db.VarChar(64)
+  createdAt               DateTime @default(now())
+  expiresAt               DateTime
+  updatedAt               DateTime @updatedAt
+
+  approvals      BrokerOrderApproval[]
+  paperOrder     BrokerPaperOrder?
+  guardDecisions ExecutionGuardDecision[]
+  incidents      ExecutionIncident[]
+
+  @@index([brokerAccountId, status, createdAt])
+  @@index([strategyId, createdAt])
+  @@index([portfolioId, createdAt])
+  @@index([correlationId])
+}
+
+model BrokerOrderApproval {
+  id                   String    @id @default(uuid())
+  proposalId           String
+  actorId              String
+  decision             String
+  reason               String    @db.NVarChar(Max)
+  proposalSnapshotHash String    @db.VarChar(64)
+  confirmationHash     String    @db.VarChar(64)
+  approvedAt           DateTime?
+  expiresAt            DateTime
+  createdAt            DateTime  @default(now())
+
+  proposal BrokerOrderProposal @relation(fields: [proposalId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([proposalId, createdAt])
+  @@index([actorId, createdAt])
+}
+
+model BrokerPaperOrder {
+  id                  String    @id @default(uuid())
+  proposalId          String    @unique
+  brokerAccountId     String
+  idempotencyKey      String    @unique @db.VarChar(240)
+  externalOrderId     String?
+  externalPermanentId String?
+  protectiveStopExternalOrderId String?
+  protectiveStopPermanentId String?
+  protectiveStopPrice Decimal?  @db.Decimal(18, 6)
+  protectiveStopQuantity Decimal? @db.Decimal(18, 6)
+  protectiveStopStatus String?
+  protectiveStopLatestStatusAt DateTime?
+  brokerReplyId       String?   @db.VarChar(160)
+  brokerReplyMessage  String?   @db.NVarChar(Max)
+  brokerReplyReceivedAt DateTime?
+  symbol              String
+  side                String
+  orderType           String
+  quantity            Decimal   @db.Decimal(18, 6)
+  limitPrice          Decimal?  @db.Decimal(18, 6)
+  stopPrice           Decimal?  @db.Decimal(18, 6)
+  timeInForce         String
+  outsideRth          Boolean   @default(false)
+  allowPartialFill    Boolean   @default(true)
+  status              String    @default("CREATED")
+  filledQuantity      Decimal   @default(0) @db.Decimal(18, 6)
+  remainingQuantity   Decimal   @db.Decimal(18, 6)
+  averageFillPrice    Decimal?  @db.Decimal(18, 6)
+  lastFillPrice       Decimal?  @db.Decimal(18, 6)
+  submissionAttempt   Int       @default(0)
+  submittedAt         DateTime?
+  latestStatusAt      DateTime?
+  errorMessage        String?   @db.NVarChar(Max)
+  correlationId       String    @db.VarChar(64)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  proposal                  BrokerOrderProposal                   @relation(fields: [proposalId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  events                    BrokerPaperOrderEvent[]
+  executions                BrokerPaperExecution[]
+  reconciliationDifferences BrokerPaperReconciliationDifference[]
+  incidents                 ExecutionIncident[]
+
+  @@index([brokerAccountId, status, createdAt])
+  @@index([externalOrderId])
+  @@index([externalPermanentId])
+  @@index([protectiveStopExternalOrderId])
+  @@index([brokerReplyId, status])
+  @@index([correlationId])
+}
+
+model BrokerPaperOrderEvent {
+  id                  String   @id @default(uuid())
+  brokerPaperOrderId  String
+  externalOrderId     String?
+  externalPermanentId String?
+  status              String
+  filledQuantity      Decimal  @db.Decimal(18, 6)
+  remainingQuantity   Decimal  @db.Decimal(18, 6)
+  averageFillPrice    Decimal? @db.Decimal(18, 6)
+  lastFillPrice       Decimal? @db.Decimal(18, 6)
+  reason              String?  @db.NVarChar(Max)
+  eventTime           DateTime
+  connectorVersion    String
+  rawDataHash         String   @db.VarChar(64)
+  correlationId       String   @db.VarChar(64)
+  createdAt           DateTime @default(now())
+
+  paperOrder BrokerPaperOrder @relation(fields: [brokerPaperOrderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([brokerPaperOrderId, eventTime])
+  @@index([externalOrderId, eventTime])
+  @@index([correlationId])
+}
+
+model BrokerPaperExecution {
+  executionRole String @default("UNKNOWN") @db.NVarChar(32)
+  externalOrderId String?
+  externalPermanentId String?
+  id                  String   @id @default(uuid())
+  brokerPaperOrderId  String
+  externalExecutionId String?
+  deduplicationKey    String   @unique @db.VarChar(64)
+  symbol              String
+  side                String
+  quantity            Decimal  @db.Decimal(18, 6)
+  price               Decimal  @db.Decimal(18, 6)
+  currency            String
+  executionTime       DateTime
+  exchange            String
+  rawDataHash         String   @db.VarChar(64)
+  correlationId       String   @db.VarChar(64)
+  createdAt           DateTime @default(now())
+
+  paperOrder  BrokerPaperOrder        @relation(fields: [brokerPaperOrderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  commissions BrokerPaperCommission[]
+
+  @@index([brokerPaperOrderId, executionTime])
+  @@index([externalExecutionId])
+  @@index([correlationId])
+}
+
+model BrokerPaperCommission {
+  id                     String   @id @default(uuid())
+  brokerPaperExecutionId String
+  deduplicationKey       String   @unique @db.VarChar(64)
+  externalReportId       String?
+  amount                 Decimal  @db.Decimal(18, 4)
+  currency               String
+  realizedPnl            Decimal? @db.Decimal(18, 4)
+  reportTime             DateTime
+  rawDataHash            String   @db.VarChar(64)
+  correlationId          String   @db.VarChar(64)
+  createdAt              DateTime @default(now())
+
+  execution BrokerPaperExecution @relation(fields: [brokerPaperExecutionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([brokerPaperExecutionId, reportTime])
+  @@index([correlationId])
+}
+
+model BrokerPaperReconciliationRun {
+  id                      String    @id @default(uuid())
+  brokerAccountId         String
+  brokerPaperOrderId      String?
+  status                  String    @default("PENDING")
+  startedAt               DateTime
+  completedAt             DateTime?
+  differenceCount         Int       @default(0)
+  criticalDifferenceCount Int       @default(0)
+  summaryJson             String    @db.NVarChar(Max)
+  correlationId           String    @db.VarChar(64)
+  createdAt               DateTime  @default(now())
+
+  differences BrokerPaperReconciliationDifference[]
+
+  @@index([brokerAccountId, createdAt])
+  @@index([brokerPaperOrderId, createdAt])
+  @@index([status, createdAt])
+}
+
+model BrokerPaperReconciliationDifference {
+  id                  String    @id @default(uuid())
+  reconciliationRunId String
+  brokerPaperOrderId  String?
+  differenceType      String
+  fieldName           String
+  brokerValue         String?
+  localValue          String?
+  differenceValue     String?
+  severity            String
+  reason              String    @db.NVarChar(Max)
+  suggestedAction     String    @db.NVarChar(Max)
+  status              String    @default("OPEN")
+  createdAt           DateTime  @default(now())
+  resolvedAt          DateTime?
+
+  reconciliationRun BrokerPaperReconciliationRun @relation(fields: [reconciliationRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  paperOrder        BrokerPaperOrder?            @relation(fields: [brokerPaperOrderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([reconciliationRunId, severity])
+  @@index([brokerPaperOrderId, status])
+}
+
+model ExecutionGuardDecision {
+  id                  String    @id @default(uuid())
+  proposalId          String
+  decision            String
+  checksJson          String    @db.NVarChar(Max)
+  reason              String?   @db.NVarChar(Max)
+  marketDataTime      DateTime?
+  accountSnapshotTime DateTime?
+  correlationId       String    @db.VarChar(64)
+  createdAt           DateTime  @default(now())
+
+  proposal BrokerOrderProposal @relation(fields: [proposalId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([proposalId, createdAt])
+  @@index([decision, createdAt])
+  @@index([correlationId])
+}
+
+model ExecutionIncident {
+  id                 String    @id @default(uuid())
+  proposalId         String?
+  brokerPaperOrderId String?
+  brokerAccountId    String?
+  incidentType       String
+  severity           String
+  impact             String    @db.NVarChar(Max)
+  status             String    @default("OPEN")
+  actionTaken        String?   @db.NVarChar(Max)
+  rootCause          String?   @db.NVarChar(Max)
+  followUpRule       String?   @db.NVarChar(Max)
+  correlationId      String    @db.VarChar(64)
+  occurredAt         DateTime
+  resolvedAt         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  proposal   BrokerOrderProposal? @relation(fields: [proposalId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  paperOrder BrokerPaperOrder?    @relation(fields: [brokerPaperOrderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([incidentType, severity, occurredAt])
+  @@index([brokerAccountId, occurredAt])
+  @@index([correlationId])
+}
+
+model BrokerExecutionControl {
+  id                String   @id
+  killSwitchLevel   String   @default("LEVEL_0_NORMAL")
+  safetyState       String   @default("READ_ONLY")
+  reason            String?  @db.NVarChar(Max)
+  operatorId        String?
+  previousStateJson String?  @db.NVarChar(Max)
+  confirmationHash  String?  @db.VarChar(64)
+  updatedAt         DateTime @updatedAt
+  createdAt         DateTime @default(now())
+}
+
+model BackupRecoveryRun {
+  id                  String    @id @default(uuid())
+  operation           String
+  targetDatabase      String
+  backupReferenceHash String?   @db.VarChar(64)
+  status              String
+  actorId             String
+  startedAt           DateTime
+  completedAt         DateTime?
+  verificationJson    String?   @db.NVarChar(Max)
+  errorMessage        String?   @db.NVarChar(Max)
+  createdAt           DateTime  @default(now())
+
+  @@index([operation, startedAt])
+  @@index([status, startedAt])
+}
+
+// 行为风控防火墙。硬规则事件只能追加，普通人工 Override 不得修改其决定。
+model PredefinedScalePlan {
+  id                  String    @id @default(uuid())
+  brokerAccountId     String
+  symbol              String
+  version             Int
+  status              String    @default("APPROVED")
+  tranchesJson        String    @db.NVarChar(Max)
+  maxTotalQuantity    Decimal   @db.Decimal(18, 6)
+  maxPrincipalPercent Decimal   @db.Decimal(10, 6)
+  finalStopPrice      Decimal   @db.Decimal(18, 6)
+  maxAccountRiskPct   Decimal   @db.Decimal(10, 6)
+  allowOvernight      Boolean
+  planHash            String    @db.VarChar(64)
+  createdBy           String
+  approvalChainJson   String    @db.NVarChar(Max)
+  approvedAt          DateTime
+  firstFilledAt       DateTime?
+  lockedAt            DateTime?
+  expiresAt           DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@unique([brokerAccountId, symbol, version])
+  @@index([brokerAccountId, symbol, status])
+  @@index([planHash])
+}
+
+model RiskDisciplineEvent {
+  id                 String   @id @default(uuid())
+  brokerAccountId    String?
+  proposalId         String?
+  brokerPaperOrderId String?
+  positionIncidentId String?
+  eventType          String
+  severity           String
+  ruleCode           String
+  decision           String
+  reason             String   @db.NVarChar(Max)
+  oldValueJson       String?  @db.NVarChar(Max)
+  newValueJson       String?  @db.NVarChar(Max)
+  actorId            String
+  approvalChainJson  String?  @db.NVarChar(Max)
+  idempotencyKey     String   @unique @db.VarChar(240)
+  occurredAt         DateTime
+  createdAt          DateTime @default(now())
+
+  @@index([brokerAccountId, occurredAt])
+  @@index([proposalId, occurredAt])
+  @@index([brokerPaperOrderId, occurredAt])
+  @@index([ruleCode, decision, occurredAt])
+}
+
+model RiskDisciplineOverride {
+  id                String   @id @default(uuid())
+  targetType        String
+  targetId          String
+  ruleCode          String
+  classification    String   @default("SOFT_WARNING")
+  oldValueJson      String   @db.NVarChar(Max)
+  newValueJson      String   @db.NVarChar(Max)
+  reason            String   @db.NVarChar(1000)
+  operatorId        String
+  approvalChainJson String   @db.NVarChar(Max)
+  status            String   @default("APPROVED")
+  createdAt         DateTime @default(now())
+
+  @@index([targetType, targetId, createdAt])
+  @@index([ruleCode, createdAt])
+}
+
+model ProfitGivebackSnapshot {
+  pnlCoverage String @default("UNKNOWN") @db.NVarChar(64)
+  pnlYear Int?
+  id                   String   @id @default(uuid())
+  accountId            String
+  snapshotDate         DateTime @db.Date
+  peakYtdPnl           Decimal  @db.Decimal(18, 4)
+  currentYtdPnl        Decimal  @db.Decimal(18, 4)
+  profitGivebackAmount Decimal  @db.Decimal(18, 4)
+  profitGivebackPct    Decimal  @db.Decimal(10, 6)
+  state                String
+  ruleVersion          Int      @default(1)
+  createdAt            DateTime @default(now())
+
+  @@unique([accountId, snapshotDate])
+  @@index([accountId, state, snapshotDate])
+}
+
+model PositionIncident {
+  id                 String    @id @default(uuid())
+  idempotencyKey     String    @unique @db.VarChar(240)
+  brokerAccountId    String?
+  localAccountId     String?
+  title              String
+  symbolsJson        String    @db.NVarChar(Max)
+  riskTheme          String?
+  source             String    @default("IBKR_IMPORT_OHLCV")
+  dataGranularity    String    @default("DAILY_MAE_APPROXIMATION")
+  openedAt           DateTime
+  firstViolationAt   DateTime?
+  closedAt           DateTime?
+  status             String    @default("OPEN")
+  finalRealizedPnl   Decimal?  @db.Decimal(18, 4)
+  maximumUnrealizedLoss Decimal? @db.Decimal(18, 4)
+  maximumFavorableExcursion Decimal? @db.Decimal(18, 4)
+  mfeCaptureRatio    Decimal?  @db.Decimal(12, 6)
+  maeToRealizedLoss Decimal?  @db.Decimal(12, 6)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([brokerAccountId, openedAt])
+  @@index([localAccountId, openedAt])
+  @@index([status, openedAt])
+}
+
+// V1.9 外部环境认证、稳定性与发布证据。只记录验证结果，不得写入任何交易账本。
+model ExternalCertificationRun {
+  id                String    @id @default(uuid())
+  certificationType String
+  status            String    @default("BLOCKED")
+  blockedReason     String?   @db.NVarChar(Max)
+  operatorId        String
+  systemVersion     String
+  connectorVersion  String?
+  environment       String
+  maskedAccount     String?
+  prerequisitesJson String    @db.NVarChar(Max)
+  resultJson        String    @db.NVarChar(Max)
+  startedAt         DateTime
+  completedAt       DateTime?
+  createdAt         DateTime  @default(now())
+
+  evidences CertificationEvidence[]
+
+  @@index([certificationType, startedAt])
+  @@index([status, startedAt])
+}
+
+model CertificationEvidence {
+  id                    String    @id @default(uuid())
+  certificationRunId    String?
+  category              String
+  evidenceType          String
+  status                String
+  source                String
+  isExternal            Boolean   @default(false)
+  sensitiveDataRedacted Boolean   @default(true)
+  summary               String    @db.NVarChar(Max)
+  payloadJson           String    @db.NVarChar(Max)
+  checksum              String    @db.VarChar(64)
+  correlationId         String?   @db.VarChar(64)
+  occurredAt            DateTime
+  createdAt             DateTime  @default(now())
+
+  certificationRun ExternalCertificationRun? @relation(fields: [certificationRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([category, occurredAt])
+  @@index([certificationRunId, occurredAt])
+  @@index([status, occurredAt])
+}
+
+model SoakTestRun {
+  id                    String    @id @default(uuid())
+  status                String    @default("RUNNING")
+  readinessStatus       String    @default("OBSERVING")
+  targetHours           Int       @default(72)
+  environment           String
+  operatorId            String
+  baselineJson          String    @db.NVarChar(Max)
+  resultJson            String?   @db.NVarChar(Max)
+  startedAt             DateTime
+  expectedEndAt         DateTime
+  stoppedAt             DateTime?
+  actualDurationMinutes Int       @default(0)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  samples SoakMetricSample[]
+
+  @@index([status, startedAt])
+}
+
+model SoakMetricSample {
+  id                      String   @id @default(uuid())
+  soakTestRunId           String
+  sampledAt               DateTime
+  apiAvailable             Boolean
+  brokerAvailable          Boolean
+  quantAvailable           Boolean
+  databaseAvailable        Boolean
+  apiLatencyMs             Float
+  p95LatencyMs             Float
+  p99LatencyMs             Float
+  apiErrorRate             Float
+  memoryMb                  Float
+  cpuLoad                   Float
+  databaseConnections      Int?
+  taskSuccessRate           Float
+  taskDuplicateCount        Int
+  reconciliationDifference Int
+  duplicateOrderCount      Int
+  unrecoveredTaskCount      Int
+  diskFreeGb                Float?
+  logSizeMb                 Float?
+  brokerReconnectCount      Int
+  createdAt                 DateTime @default(now())
+
+  soakTestRun SoakTestRun @relation(fields: [soakTestRunId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([soakTestRunId, sampledAt])
+  @@index([soakTestRunId, sampledAt])
+}
+
+model FaultInjectionRun {
+  id                    String    @id @default(uuid())
+  scenario              String
+  status                String    @default("BLOCKED")
+  expectedBehavior      String    @db.NVarChar(Max)
+  actualBehavior        String?   @db.NVarChar(Max)
+  duplicateOrders       Int       @default(0)
+  ledgerPolluted        Boolean   @default(false)
+  notificationTriggered Boolean   @default(false)
+  recovered             Boolean   @default(false)
+  manualActionRequired  Boolean   @default(false)
+  blockedReason         String?   @db.NVarChar(Max)
+  operatorId            String
+  correlationId         String    @db.VarChar(64)
+  evidenceJson          String    @db.NVarChar(Max)
+  startedAt             DateTime
+  completedAt           DateTime?
+  createdAt             DateTime  @default(now())
+
+  @@index([scenario, startedAt])
+  @@index([status, startedAt])
+}
+
+model LedgerIntegrityRun {
+  id            String    @id @default(uuid())
+  status        String
+  source        String
+  correlationId String    @db.VarChar(64)
+  checkCount    Int
+  passedCount   Int
+  warningCount  Int
+  criticalCount Int
+  snapshotJson  String    @db.NVarChar(Max)
+  startedAt     DateTime
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  checks LedgerIntegrityCheck[]
+
+  @@index([status, startedAt])
+  @@index([source, startedAt])
+}
+
+model LedgerIntegrityCheck {
+  id          String   @id @default(uuid())
+  runId       String
+  code        String
+  status      String
+  severity    String
+  message     String   @db.NVarChar(Max)
+  observed    String?  @db.NVarChar(Max)
+  expected    String?  @db.NVarChar(Max)
+  createdAt   DateTime @default(now())
+
+  run LedgerIntegrityRun @relation(fields: [runId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([runId, code])
+  @@index([runId, severity])
+}
+
+model ReleaseEvidenceBundle {
+  id              String   @id @default(uuid())
+  version         String
+  status          String
+  readinessStatus String
+  externalStatus  String
+  linuxStatus     String
+  soakStatus      String
+  faultStatus     String
+  ledgerStatus    String
+  evidenceJson    String   @db.NVarChar(Max)
+  checksum        String   @db.VarChar(64)
+  createdAt       DateTime @default(now())
+
+  @@index([version, createdAt])
+  @@index([status, createdAt])
+}
+
+model MarketResearchSource {
+  id               String   @id @default(uuid()) @db.VarChar(64)
+  sourceType       String   @default("YOUTUBE") @db.VarChar(40)
+  externalId       String   @unique @db.VarChar(64)
+  creatorName      String
+  creatorHandle    String?  @db.VarChar(120)
+  title            String   @db.NVarChar(Max)
+  url              String   @db.NVarChar(1000)
+  publishedAt      DateTime
+  durationSeconds  Int?
+  extractionMethod String   @db.VarChar(80)
+  reviewStatus     String   @default("REVIEWED") @db.VarChar(40)
+  notes            String?  @db.NVarChar(Max)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  factors MarketInfluenceFactor[]
+
+  @@index([sourceType, publishedAt])
+  @@index([creatorHandle, publishedAt])
+  @@index([reviewStatus, publishedAt])
+}
+
+model MarketInfluenceFactor {
+  id                     String    @id @default(uuid()) @db.VarChar(100)
+  sourceId               String    @db.VarChar(64)
+  code                   String    @db.VarChar(64)
+  category               String    @db.VarChar(40)
+  label                  String
+  value                  Decimal?  @db.Decimal(18, 6)
+  unit                   String?   @db.VarChar(32)
+  direction              String    @db.VarChar(32)
+  directionScore         Float
+  tailRiskScore          Float
+  confidence             Float
+  horizonDays            Int?
+  sourceTimestampSeconds Int?
+  asOfDate               DateTime?
+  freshness              String    @default("UNVERIFIED") @db.VarChar(32)
+  verificationStatus     String    @default("UNVERIFIED") @db.VarChar(32)
+  includeInAssessment    Boolean   @default(true)
+  evidenceSummary        String    @db.NVarChar(Max)
+  officialSourceUrl      String?   @db.NVarChar(1000)
+  notes                  String?   @db.NVarChar(Max)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  source MarketResearchSource @relation(fields: [sourceId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([sourceId, code])
+  @@index([code, asOfDate])
+  @@index([category, asOfDate])
+  @@index([verificationStatus, freshness])
+}
+
+model MarketRegimeAssessment {
+  id                   String   @id @default(uuid()) @db.VarChar(64)
+  target               String   @db.VarChar(32)
+  asOfDate             DateTime
+  horizonDays          Int
+  status               String   @db.VarChar(64)
+  regime               String   @db.VarChar(64)
+  directionScore       Float
+  tailRiskScore        Float
+  evidenceConfidence   Float
+  sourceCount          Int
+  factorCount          Int
+  verifiedFactorCount  Int
+  bullishProbability   Float?
+  neutralProbability   Float?
+  bearishProbability   Float?
+  drawdown5Probability Float?
+  methodologyVersion   String   @db.VarChar(64)
+  summary              String   @db.NVarChar(Max)
+  blockersJson         String   @db.NVarChar(Max)
+  factorSnapshotJson   String   @db.NVarChar(Max)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([target, asOfDate, horizonDays, methodologyVersion])
+  @@index([target, asOfDate])
+  @@index([status, asOfDate])
+}
+
+// 可审计的三层策略外部证据。observedAt 是指标所属时间，availableAt 是市场当时可获知时间；
+// 回测只允许使用 availableAt 不晚于交易日的数据，防止把后续披露数据带回历史。
+model StrategyEvidenceProvider {
+  id                String    @id @default(uuid()) @db.VarChar(64)
+  code              String    @unique @db.VarChar(64)
+  name              String
+  evidenceType      String    @db.VarChar(40)
+  providerType      String    @db.VarChar(64)
+  enabled           Boolean   @default(true)
+  configJson        String?   @db.NVarChar(Max)
+  apiKeyEnv         String?   @db.VarChar(80)
+  lastHealthStatus  String?   @db.VarChar(40)
+  lastHealthMessage String?   @db.NVarChar(Max)
+  lastHealthAt      DateTime?
+  lastSyncAt        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  observations StrategyEvidenceObservation[]
+
+  @@index([evidenceType, enabled])
+  @@index([lastHealthStatus, lastHealthAt])
+}
+
+model StrategyEvidenceObservation {
+  id                 String   @id @default(uuid()) @db.VarChar(100)
+  providerId         String   @db.VarChar(64)
+  symbol             String   @db.VarChar(32)
+  evidenceType       String   @db.VarChar(40)
+  metricCode         String   @db.VarChar(64)
+  observedAt         DateTime
+  availableAt        DateTime
+  expiresAt          DateTime?
+  value              Decimal  @db.Decimal(24, 8)
+  unit               String?  @db.VarChar(32)
+  verificationStatus String   @default("VERIFIED") @db.VarChar(32)
+  derivation          String?  @db.NVarChar(Max)
+  sourceUrl           String   @db.NVarChar(1000)
+  rawDataJson         String?  @db.NVarChar(Max)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  provider StrategyEvidenceProvider @relation(fields: [providerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([providerId, symbol, metricCode, observedAt])
+  @@index([symbol, metricCode, availableAt])
+  @@index([evidenceType, availableAt])
+  @@index([verificationStatus, availableAt])
+}

@@ -1,0 +1,12 @@
+LICENSE DECISION PENDING
+
+No open-source license has been selected or approved for the XichuQuant project.
+This notice does not grant a license to the project's original code.
+The package license remains UNLICENSED until the copyright owner approves a
+license and its applicable files, contributors and third-party notices have
+been reviewed. Public visibility of source code is not a license grant.
+
+Third-party dependencies retain their own licenses. See
+docs/OPEN_SOURCE_LICENSE_REVIEW.md and docs/THIRD_PARTY_NOTICES.md for the review inventory.
+This file must be replaced by the approved license text before open-source
+release. MIT and Apache-2.0 are candidates, not effective project licenses.

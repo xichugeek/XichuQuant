@@ -1,0 +1,28 @@
+services:
+  api:
+    environment:
+      REQUIRE_HTTPS: "false"
+      WEB_ORIGIN: http://localhost:5088
+  reverse-proxy:
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+    image: nginx:1.29-alpine
+    depends_on:
+      api: { condition: service_healthy }
+      web: { condition: service_healthy }
+    networks: [frontend]
+    ports: ["127.0.0.1:5088:8080"]
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    tmpfs: [/var/cache/nginx, /var/run]
+    volumes:
+      - ./deploy/linux/nginx.local.conf:/etc/nginx/nginx.conf:ro
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8080/health]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+    mem_limit: 128m
+    cpus: 0.25

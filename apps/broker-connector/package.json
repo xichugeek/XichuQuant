@@ -1,0 +1,21 @@
+{
+  "name": "broker-connector",
+  "version": "1.8.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/main.ts",
+    "start:prod": "node dist/main.js",
+    "lint": "eslint --config ../../eslint.config.mjs src",
+    "test": "tsx --test src/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.1",
+    "tsx": "4.23.1",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "@stoqey/ib": "1.6.9"
+  }
+}

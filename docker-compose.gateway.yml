@@ -1,0 +1,9 @@
+# Optional, operator-approved local Gateway access only. Never combine with public Demo.
+services:
+  broker-connector:
+    networks: [backend, gateway]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    environment:
+      IBKR_TWS_HOST: ${IBKR_TWS_HOST:?Verify the host API bind address and access controls}
+networks:
+  gateway:

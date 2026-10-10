@@ -1,0 +1,218 @@
+name: xichuquant
+
+x-bounded-logging: &bounded-logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "3" }
+
+services:
+  sqlserver:
+    logging: *bounded-logging
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Express
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in the production environment}
+    healthcheck:
+      test: ["CMD-SHELL", "SQLCMDPASSWORD=\"$$MSSQL_SA_PASSWORD\" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -Q 'SELECT 1' -b >/dev/null"]
+      interval: 10s
+      retries: 20
+      start_period: 30s
+      timeout: 5s
+    restart: unless-stopped
+    networks: [backend]
+    mem_limit: 4g
+    cpus: 2
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+      - sqlserver-backup:/var/opt/mssql/backup
+
+  quant-engine:
+    logging: *bounded-logging
+    build:
+      context: .
+      dockerfile: apps/quant-engine/Dockerfile
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5091/health', timeout=3)"]
+      interval: 15s
+      retries: 5
+      timeout: 5s
+    restart: unless-stopped
+    networks: [backend]
+    mem_limit: 1g
+    cpus: 1
+    security_opt: [no-new-privileges:true]
+
+  broker-connector:
+    logging: *bounded-logging
+    build:
+      context: .
+      target: broker-connector
+    environment:
+      BROKER_ACCOUNT_HASH_PEPPER: ${BROKER_ACCOUNT_HASH_PEPPER:?Set BROKER_ACCOUNT_HASH_PEPPER}
+      BROKER_CONNECTOR_MODE: ${BROKER_CONNECTOR_MODE:-OFFLINE}
+      BROKER_CONNECTOR_PORT: 5092
+      BROKER_CONNECTOR_HOST: 0.0.0.0
+      XICHURISK_ENV_ISOLATED: "true"
+      BROKER_CONNECTOR_ENVIRONMENT: ${BROKER_CONNECTOR_ENVIRONMENT:-DISABLED}
+      BROKER_PAPER_ACCOUNT_HASH_ALLOWLIST: ${BROKER_PAPER_ACCOUNT_HASH_ALLOWLIST:-}
+      IBKR_GATEWAY_CA_CERT_PATH: ${IBKR_GATEWAY_CA_CERT_PATH:-}
+      IBKR_PAPER_BASE_URL: ${IBKR_PAPER_BASE_URL:-}
+      IBKR_PAPER_ACCOUNT_ID: ${IBKR_PAPER_ACCOUNT_ID:-}
+      IBKR_PAPER_TRANSPORT: ${IBKR_PAPER_TRANSPORT:-HTTP}
+      IBKR_TWS_API_READ_ONLY: ${IBKR_TWS_API_READ_ONLY:-true}
+      IBKR_TWS_CLIENT_ID: ${IBKR_TWS_CLIENT_ID:-71}
+      IBKR_TWS_HOST: ${IBKR_TWS_HOST:-127.0.0.1}
+      IBKR_TWS_PORT: ${IBKR_TWS_PORT:-4002}
+      IBKR_TWS_TIMEOUT_MS: ${IBKR_TWS_TIMEOUT_MS:-12000}
+      IBKR_TWS_EXECUTION_TIMEZONE: ${IBKR_TWS_EXECUTION_TIMEZONE:-}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5092/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      retries: 5
+      timeout: 5s
+    restart: unless-stopped
+    networks: [backend]
+    mem_limit: 512m
+    cpus: 0.5
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - app-logs:/var/log/xichu/broker-connector
+
+  api:
+    logging: *bounded-logging
+    build:
+      context: .
+      target: api
+    depends_on:
+      broker-connector:
+        condition: service_healthy
+      quant-engine:
+        condition: service_healthy
+      sqlserver:
+        condition: service_healthy
+    environment:
+      API_PORT: 5089
+      API_HOST: 0.0.0.0
+      XICHURISK_ENV_ISOLATED: "true"
+      XICHURISK_DATA_MODE: ${XICHURISK_DATA_MODE:-HISTORICAL}
+      PUBLIC_DEMO_READ_ONLY: ${PUBLIC_DEMO_READ_ONLY:-false}
+      REQUIRE_HTTPS: ${REQUIRE_HTTPS:-true}
+      BROKER_CONNECTOR_MODE: ${BROKER_CONNECTOR_MODE:-OFFLINE}
+      BROKER_CONNECTOR_ENVIRONMENT: ${BROKER_CONNECTOR_ENVIRONMENT:-DISABLED}
+      IBKR_TWS_API_READ_ONLY: ${IBKR_TWS_API_READ_ONLY:-true}
+      IBKR_PAPER_ACCOUNT_ID: ${IBKR_PAPER_ACCOUNT_ID:-}
+      BROKER_ACCOUNT_HASH_PEPPER: ${BROKER_ACCOUNT_HASH_PEPPER:?Set BROKER_ACCOUNT_HASH_PEPPER}
+      BROKER_CONNECTOR_URL: http://broker-connector:5092
+      BROKER_PAPER_ACCOUNT_HASH_ALLOWLIST: ${BROKER_PAPER_ACCOUNT_HASH_ALLOWLIST:-}
+      DATABASE_URL: ${DATABASE_URL:?Set container SQL Server DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      NODE_ENV: production
+      QUANT_ENGINE_URL: http://quant-engine:5091
+      SESSION_TTL_HOURS: ${SESSION_TTL_HOURS:-8}
+      WEB_ORIGIN: ${WEB_ORIGIN:?Set the HTTPS public origin}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5089/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      retries: 8
+      start_period: 20s
+      timeout: 5s
+    restart: unless-stopped
+    networks: [backend, frontend]
+    mem_limit: 1g
+    cpus: 1
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - app-logs:/var/log/xichu/api
+
+  web:
+    logging: *bounded-logging
+    build:
+      context: .
+      target: web
+      args:
+        NEXT_PUBLIC_API_URL: /api
+        NEXT_PUBLIC_DATA_MODE: ${XICHURISK_DATA_MODE:-HISTORICAL}
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      API_INTERNAL_URL: http://api:5089
+      XICHURISK_DATA_MODE: ${XICHURISK_DATA_MODE:-HISTORICAL}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5088').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      retries: 8
+      start_period: 20s
+      timeout: 5s
+    restart: unless-stopped
+    networks: [frontend]
+    mem_limit: 1g
+    cpus: 1
+    security_opt: [no-new-privileges:true]
+
+  db-init:
+    profiles: [tools]
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    networks: [backend]
+    depends_on:
+      sqlserver: { condition: service_healthy }
+    environment:
+      SQLCMDPASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD}
+      XICHURISK_DATABASE_NAME: ${XICHURISK_DATABASE_NAME:?Set the explicit database name}
+    volumes:
+      - ./deploy/linux/init-database.sh:/init-database.sh:ro
+    entrypoint: [bash, /init-database.sh]
+
+  db-migrate:
+    profiles: [tools]
+    build: { context: ., target: api }
+    networks: [backend]
+    depends_on:
+      sqlserver: { condition: service_healthy }
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL}
+    command: [corepack, pnpm, db:deploy]
+
+  db-seed:
+    profiles: [tools]
+    build: { context: ., target: api }
+    networks: [backend]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL}
+      SEED_DEMO_CONFIRM: ${SEED_DEMO_CONFIRM:-}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+    command: [corepack, pnpm, db:seed]
+
+  admin-init:
+    profiles: [tools]
+    build: { context: ., target: api }
+    networks: [backend]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    command: [corepack, pnpm, exec, tsx, database/prisma/bootstrap-admin.ts]
+
+  local-acceptance:
+    profiles: [tools]
+    build: { context: ., target: api }
+    networks: [backend, frontend]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL}
+      SEED_DEMO_CONFIRM: ${SEED_DEMO_CONFIRM:-}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+      ACCEPT_API_URL: http://api:5089
+      ACCEPT_WEB_URL: http://localhost:5088
+      ACCEPT_WEB_FETCH_URL: http://reverse-proxy:8080
+      PUBLIC_DEMO_READ_ONLY: ${PUBLIC_DEMO_READ_ONLY:-false}
+    command: [corepack, pnpm, exec, tsx, scripts/accept-local.ts]
+
+volumes:
+  app-logs:
+  sqlserver-backup:
+  sqlserver-data:
+
+networks:
+  backend: { internal: true }
+  frontend:

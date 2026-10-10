@@ -1,0 +1,90 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+.next/
+dist/
+build/
+coverage/
+.turbo/
+*.tsbuildinfo
+
+# Python caches and local environments
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+*.pyc
+apps/api/src/generated/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+*.secret
+*.secrets
+secrets/
+credentials/
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+
+# Logs
+*.log
+pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+
+# Playwright generated artifacts
+test-results/
+playwright-report/
+blob-report/
+
+# Local SQL Server files and backups
+*.mdf
+*.ndf
+*.ldf
+*.bak
+*.trn
+*.bacpac
+
+# Uploaded files and import caches
+uploads/
+tmp/
+temp/
+import-cache/
+import_cache/
+*.upload
+
+# Editors and operating systems
+.idea/
+.vscode/
+.vs/
+*.swp
+*.swo
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Codex runtime artifacts; formal development documents remain versioned
+/Agent/Logs/
+/Agent/Screenshots/
+/Agent/Temp/
+
+# Private release verification, credentials and browser state
+/.release-private/
+/.playwright-cli/
+/output/
+**/storageState*.json
+**/storage-state*.json
