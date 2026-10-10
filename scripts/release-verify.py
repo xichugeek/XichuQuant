@@ -7,6 +7,19 @@ import subprocess
 from pathlib import Path
 
 
+def validate_auxiliary_ref(ref, object_type, tree_oid, audited_trees):
+    """Accept only Codex snapshots that exactly reuse a verified main tree."""
+    capture = re.fullmatch(r"refs/codex/turn-diffs/captures/[0-9]+/[0-9a-f-]+/base", ref)
+    checkpoint = re.fullmatch(
+        r"refs/codex/turn-diffs/checkpoints/[0-9a-f]{32}/[0-9a-f]{32}/[0-9]+/"
+        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+        ref,
+    )
+    assert capture or checkpoint, f"Unexpected ref: {ref}"
+    assert object_type == "tree", f"Auxiliary ref must not add commit history: {ref}"
+    assert tree_oid in audited_trees, f"Auxiliary ref differs from an audited main tree: {ref}"
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, help="Optional read-only original checkout")
@@ -48,9 +61,7 @@ def main():
     for ref in refs:
         if ref == "refs/heads/main":
             continue
-        assert re.fullmatch(r"refs/codex/turn-diffs/captures/[0-9]+/[0-9a-f-]+/base", ref), f"Unexpected ref: {ref}"
-        assert git("cat-file", "-t", ref) == "tree", f"Capture must not add commit history: {ref}"
-        assert git("rev-parse", ref) in audited_trees, f"Capture differs from an audited main tree: {ref}"
+        validate_auxiliary_ref(ref, git("cat-file", "-t", ref), git("rev-parse", ref), audited_trees)
         captures.append(ref)
     assert "refs/heads/main" in refs
     assert set(git("rev-list", "--all").splitlines()) == set(main_commits), "Unexpected reachable history"

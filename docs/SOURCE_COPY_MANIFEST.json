@@ -8,7 +8,7 @@
   "unchanged_count": 365,
   "changed_count": 49,
   "excluded_count": 36,
-  "target_public_count": 427,
+  "target_public_count": 428,
   "allowed_prefixes": [
     "apps/web/",
     "apps/api/",
@@ -4825,7 +4825,7 @@
     },
     {
       "target": "scripts/release-verify.py",
-      "target_sha256": "44c1e3b53ed72d8aec7bd545caf936124196f2620cb7d78401fb9a92f30df628",
+      "target_sha256": "1b7bd2ea7ca0f6b5f949c93c36dc46f16e82259b69f19bc261d801beae90f749",
       "reason": "New independent release documentation or verification helper"
     },
     {
@@ -4837,6 +4837,11 @@
       "target": "docs/licenses/backtesting-engine-MIT.txt",
       "target_sha256": "122e1337a52ebee631027875fb292899263806f103a3d481af9c9ed19db43dd8",
       "reason": "Preserve original upstream MIT copyright and full license for identified strategy adaptation"
+    },
+    {
+      "target": "scripts/test_release_verify.py",
+      "target_sha256": "a3b749f595a0504b69dd6d3ed1e379dec9edcd0d072d17ea77eaa8253cb3ec4a",
+      "reason": "Positive and negative tests for same-tree Codex auxiliary-ref validation"
     }
   ],
   "self_reference_note": "Every retained/added public file has actual target SHA-256 except this JSON manifest itself. Its existence and exact tracked-file set are required; Git covers its final content. Source hashes remain immutable.",
