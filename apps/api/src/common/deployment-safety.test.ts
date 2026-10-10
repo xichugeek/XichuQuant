@@ -1,10 +1,10 @@
 import "reflect-metadata";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { assertPublicDemoConfiguration, publicDemoMethodAllowed } from "./deployment-safety";
+import { assertPublicDemoConfiguration, publicDemoMethodAllowed, publicDemoSessionLimit } from "./deployment-safety";
 import { ProductionSecurityMiddleware } from "./production-security.middleware";
 
-const safe = { PUBLIC_DEMO_READ_ONLY: "true", NODE_ENV: "production", XICHURISK_DATA_MODE: "DEMO",
+const safe = { PUBLIC_DEMO_READ_ONLY: "true", NODE_ENV: "production", XICHURISK_DATA_MODE: "DEMO", REQUIRE_HTTPS: "true", TRUSTED_PROXY_IPS: "192.0.2.10",
   DATABASE_URL: "sqlserver://sqlserver:1433;database=XichuQuantDemo_test;user=example;password=synthetic-not-a-secret;",
   BROKER_CONNECTOR_MODE: "OFFLINE", BROKER_CONNECTOR_ENVIRONMENT: "DISABLED", IBKR_TWS_API_READ_ONLY: "true" };
 test("Public Demo refuses business databases, nonproduction and external credentials", () => {
@@ -12,9 +12,15 @@ test("Public Demo refuses business databases, nonproduction and external credent
   for (const patch of [{ NODE_ENV: "development" }, { XICHURISK_DATA_MODE: "UNKNOWN" }, { DATABASE_URL: "sqlserver://host:1433;database=BusinessDb;" },
     { DATABASE_URL: "sqlserver://host:1433;database=XichuRiskDemo_original;" },
     { DATABASE_URL: `${safe.DATABASE_URL}database=BusinessDb;` }, { BROKER_CONNECTOR_MODE: "IBKR_PAPER" },
-    { IBKR_PAPER_ACCOUNT_ID: "synthetic-account" }, { MARKET_DATA_HTTP_BASE_URL: "https://example.invalid" }, { IBKR_TWS_API_READ_ONLY: "false" }]) {
+    { IBKR_PAPER_ACCOUNT_ID: "synthetic-account" }, { MARKET_DATA_HTTP_BASE_URL: "https://example.invalid" }, { IBKR_TWS_API_READ_ONLY: "false" },
+    { REQUIRE_HTTPS: "false" }, { TRUSTED_PROXY_IPS: "" }, { TRUSTED_PROXY_IPS: "true" }]) {
     assert.throws(() => assertPublicDemoConfiguration({ ...safe, ...patch }));
   }
+});
+test("Public Demo session caps have bounded defaults and reject unsafe configuration", () => {
+  assert.equal(publicDemoSessionLimit(), 100);
+  assert.equal(publicDemoSessionLimit("2"), 2);
+  for (const value of ["0", "1", "501", "NaN", "2.5", ""]) assert.throws(() => assertPublicDemoConfiguration({ ...safe, PUBLIC_DEMO_MAX_SESSIONS: value }));
 });
 test("Public Demo rejects upload, broker, compute and configuration mutations", () => {
   for (const path of ["/imports/preview", "/backtests/run", "/paper-execution/orders", "/paper-trading/accounts", "/risk-rules/one", "/broker-sync/run"]) {

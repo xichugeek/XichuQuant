@@ -1,0 +1,92 @@
+# Merge only with docker-compose.yml and docker-compose.demo.yml.
+# Caddy is an existing external service; this stack publishes no host ports.
+name: xg-xichuquant-demo
+
+services:
+  sqlserver:
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 256
+  quant-engine:
+    mem_limit: 384m
+    cpus: 0.5
+    pids_limit: 128
+  broker-connector:
+    mem_limit: 128m
+    cpus: 0.25
+    pids_limit: 128
+  api:
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
+    environment:
+      REQUIRE_HTTPS: "true"
+      SESSION_TTL_HOURS: ${SESSION_TTL_HOURS:-1}
+      PUBLIC_DEMO_MAX_SESSIONS: ${PUBLIC_DEMO_MAX_SESSIONS:-100}
+      TRUSTED_PROXY_IPS: ${PUBLIC_DEMO_PROXY_IP:?Set the dedicated proxy IP},${PUBLIC_DEMO_WEB_IP:?Set the server-renderer IP}
+  web:
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
+    networks:
+      frontend:
+        ipv4_address: ${PUBLIC_DEMO_WEB_IP:?Set the server-renderer IP}
+  reverse-proxy:
+    image: nginx:1.29-alpine
+    user: nginx
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+    environment:
+      CADDY_TRUSTED_PROXY_IP: ${CADDY_TRUSTED_PROXY_IP:?Set the exact Caddy address on xg_edge}
+      NGINX_ENVSUBST_FILTER: CADDY_TRUSTED_PROXY_IP
+    networks:
+      frontend:
+        ipv4_address: ${PUBLIC_DEMO_PROXY_IP:?Set the dedicated proxy IP}
+      edge:
+        aliases: [xg-xichuquant-proxy]
+    depends_on:
+      api: { condition: service_healthy }
+      web: { condition: service_healthy }
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8080/health]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+    tmpfs:
+      - /var/cache/nginx:mode=0777
+      - /var/run:mode=0777
+      - /etc/nginx/conf.d:mode=0777
+    volumes:
+      - ./deploy/linux/nginx.public-demo.conf.template:/etc/nginx/templates/default.conf.template:ro
+  db-init:
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+  db-migrate:
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
+  db-seed:
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
+
+networks:
+  backend:
+    internal: true
+  frontend:
+    internal: true
+    ipam:
+      config:
+        - subnet: ${PUBLIC_DEMO_FRONTEND_SUBNET:?Choose an unused private IPv4 subnet}
+  edge:
+    external: true
+    name: xg_edge

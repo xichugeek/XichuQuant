@@ -45,7 +45,7 @@ export class ProductionSecurityMiddleware implements NestMiddleware {
       if (
         this.config.get<string>("REQUIRE_HTTPS", "true") === "true" &&
         !(path === "/health" && request.method === "GET") &&
-        request.header("x-forwarded-proto") !== "https"
+        !request.secure
       ) {
         response.status(426).json({ message: "生产环境必须通过 HTTPS 访问" });
         return;
@@ -126,20 +126,31 @@ export class ProductionSecurityMiddleware implements NestMiddleware {
   private rateLimitAllows(request: Request) {
     const now = Date.now();
     const address = request.ip || request.socket.remoteAddress || "unknown";
-    const scope = (request.originalUrl ?? request.path).startsWith("/paper-execution") ? "paper" : "api";
+    const path = (request.originalUrl ?? request.path).split("?")[0];
+    if (path === "/auth/login" && request.method === "POST") {
+      if (!this.consumeRateBucket(`${address}:login`, 10, now)) return false;
+      if (this.config.get<string>("PUBLIC_DEMO_READ_ONLY", "false") === "true" &&
+          !this.consumeRateBucket("demo:login:global", 60, now)) return false;
+    }
+    const scope = path?.startsWith("/paper-execution") ? "paper" : "api";
     const key = `${address}:${scope}`;
     const max = scope === "paper" ? 120 : 600;
-    const current = this.buckets.get(key);
-    if (!current || current.resetAt <= now) {
-      this.buckets.set(key, { count: 1, resetAt: now + 60_000 });
-      return true;
-    }
-    current.count += 1;
-    if (this.buckets.size > 10_000) {
+    return this.consumeRateBucket(key, max, now);
+  }
+
+  private consumeRateBucket(key: string, max: number, now: number) {
+    if (this.buckets.size >= 10_000) {
       for (const [bucketKey, bucket] of this.buckets) {
         if (bucket.resetAt <= now) this.buckets.delete(bucketKey);
       }
     }
+    const current = this.buckets.get(key);
+    if (!current || current.resetAt <= now) {
+      if (!current && this.buckets.size >= 10_000) return false;
+      this.buckets.set(key, { count: 1, resetAt: now + 60_000 });
+      return true;
+    }
+    current.count += 1;
     return current.count <= max;
   }
 }

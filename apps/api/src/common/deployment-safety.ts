@@ -1,7 +1,20 @@
 import type { PrismaClient } from "@prisma/client";
+import { trustedProxyPolicy } from "./trusted-proxy";
+
+export function publicDemoSessionLimit(value = "100") {
+  if (!/^\d+$/.test(value) || Number(value) < 2 || Number(value) > 500) {
+    throw new Error("PUBLIC_DEMO_MAX_SESSIONS must be an integer between 2 and 500.");
+  }
+  return Number(value);
+}
 
 export function assertPublicDemoConfiguration(env: NodeJS.ProcessEnv) {
   if (env.PUBLIC_DEMO_READ_ONLY !== "true") return;
+  publicDemoSessionLimit(env.PUBLIC_DEMO_MAX_SESSIONS);
+  if (!env.TRUSTED_PROXY_IPS || env.REQUIRE_HTTPS !== "true") {
+    throw new Error("Public Demo requires HTTPS and explicit TRUSTED_PROXY_IPS.");
+  }
+  trustedProxyPolicy(env.TRUSTED_PROXY_IPS);
   const databases = [...(env.DATABASE_URL ?? "").matchAll(/(?:^|;)database=([^;]*)/gi)];
   if (env.NODE_ENV !== "production" || env.XICHURISK_DATA_MODE !== "DEMO" ||
     databases.length !== 1 || !/^XichuQuantDemo_[A-Za-z0-9_]+$/.test(databases[0]?.[1] ?? "") ||

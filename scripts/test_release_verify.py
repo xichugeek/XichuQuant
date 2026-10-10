@@ -1,4 +1,4 @@
-"""Regression tests for the pre-publication Codex auxiliary-ref boundary."""
+"""Regression tests for the public main and Codex auxiliary-ref boundary."""
 import importlib.util
 import unittest
 from pathlib import Path
@@ -62,6 +62,23 @@ class AuxiliaryRefTests(unittest.TestCase):
     def test_other_branch_rejected_even_for_same_tree(self):
         with self.assertRaisesRegex(AssertionError, "Unexpected ref"):
             self.accept("refs/heads/other")
+
+
+class PublishedMainRefTests(unittest.TestCase):
+    def test_main_tracking_commit(self):
+        verifier.validate_origin_main_ref("refs/remotes/origin/main", "commit", TREE, {TREE})
+
+    def test_main_tracking_tree_rejected(self):
+        with self.assertRaises(AssertionError):
+            verifier.validate_origin_main_ref("refs/remotes/origin/main", "tree", TREE, {TREE})
+
+    def test_unrelated_commit_rejected(self):
+        with self.assertRaises(AssertionError):
+            verifier.validate_origin_main_ref("refs/remotes/origin/main", "commit", OTHER_TREE, {TREE})
+
+    def test_other_remote_branch_rejected(self):
+        with self.assertRaises(AssertionError):
+            verifier.validate_origin_main_ref("refs/remotes/origin/other", "commit", TREE, {TREE})
 
 
 if __name__ == "__main__":

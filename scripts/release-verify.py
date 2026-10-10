@@ -20,6 +20,12 @@ def validate_auxiliary_ref(ref, object_type, tree_oid, audited_trees):
     assert tree_oid in audited_trees, f"Auxiliary ref differs from an audited main tree: {ref}"
 
 
+def validate_origin_main_ref(ref, object_type, commit_oid, main_commits):
+    """A published checkout may retain only its approved main tracking ref."""
+    assert ref == "refs/remotes/origin/main", f"Unexpected remote ref: {ref}"
+    assert object_type == "commit" and commit_oid in main_commits, "origin/main must be a commit in local main history"
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, help="Optional read-only original checkout")
@@ -60,6 +66,9 @@ def main():
     captures = []
     for ref in refs:
         if ref == "refs/heads/main":
+            continue
+        if ref == "refs/remotes/origin/main":
+            validate_origin_main_ref(ref, git("cat-file", "-t", ref), git("rev-parse", ref), main_commits)
             continue
         validate_auxiliary_ref(ref, git("cat-file", "-t", ref), git("rev-parse", ref), audited_trees)
         captures.append(ref)

@@ -24,6 +24,7 @@ import {
   Home,
   Landmark,
   LockKeyhole,
+  LogOut,
   Menu,
   Search,
   Server,
@@ -46,7 +47,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
-import { fetchWithFallback, type DataSource } from "@/lib/api-client";
+import { fetchWithFallback, postJson, type DataSource } from "@/lib/api-client";
 import { emptyRiskSummary } from "@/lib/operational-fallbacks";
 import { useShellStore } from "@/lib/stores/shell-store";
 import { MarketClock } from "@/components/market-clock";
@@ -114,6 +115,8 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
   const [riskDataSource, setRiskDataSource] = useState<RiskSummary["dataSource"]>();
   const [dataOrigin, setDataOrigin] = useState<string>("UNKNOWN");
   const [snapshotTime, setSnapshotTime] = useState<string>();
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
   const mobileNavigationOpen = useShellStore((state) => state.mobileNavigationOpen);
   const setMobileNavigationOpen = useShellStore((state) => state.setMobileNavigationOpen);
   const currentPage = navigation.find((item) => item.href === pathname)?.label ?? "业务页面";
@@ -148,6 +151,18 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
   }, [pathname, router]);
 
   if (pathname === "/login") return <>{children}</>;
+
+  async function logout() {
+    setLoggingOut(true);
+    setLogoutError("");
+    try {
+      await postJson("/auth/logout");
+      window.location.assign("/login");
+    } catch (reason) {
+      setLogoutError(reason instanceof Error ? reason.message : "退出失败，请重试");
+      setLoggingOut(false);
+    }
+  }
 
   return (
     <div className={["app-shell", dashboard ? "app-shell--dashboard" : ""].join(" ")}>
@@ -274,9 +289,12 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
               <i />
             </button>
             <span className="user-avatar">楚</span>
+            <button aria-label="退出当前会话" title="退出当前会话" className="icon-button" type="button"
+              disabled={loggingOut} onClick={() => void logout()}><LogOut size={16} /></button>
           </div>
         </header>
         <main className={["page-content", dashboard ? "page-content--dashboard" : ""].join(" ")}>
+          {logoutError ? <p role="alert">{logoutError}</p> : null}
           {children}
         </main>
       </section>

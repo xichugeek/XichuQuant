@@ -8,10 +8,12 @@ import { Logger } from "nestjs-pino";
 import { AppModule } from "./app.module";
 import { assertPublicDemoConfiguration, assertPublicDemoDatabase } from "./common/deployment-safety";
 import { PrismaService } from "./prisma/prisma.service";
+import { trustedProxyPolicy } from "./common/trusted-proxy";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
   const config = app.get(ConfigService);
+  app.set("trust proxy", trustedProxyPolicy(config.get<string>("TRUSTED_PROXY_IPS", "")));
   assertPublicDemoConfiguration(process.env);
   if (process.env.PUBLIC_DEMO_READ_ONLY === "true") await assertPublicDemoDatabase(app.get(PrismaService));
 

@@ -5,10 +5,10 @@
   "source_tracked_count": 450,
   "retained_count": 414,
   "source_code_count": 296,
-  "unchanged_count": 365,
-  "changed_count": 49,
+  "unchanged_count": 361,
+  "changed_count": 53,
   "excluded_count": 36,
-  "target_public_count": 428,
+  "target_public_count": 438,
   "allowed_prefixes": [
     "apps/web/",
     "apps/api/",
@@ -110,10 +110,10 @@
       "source_sha256": "e987756527d7ae1963c16f684ca427eca1bbf5a3d30479537da77ce693ce6561",
       "source_git_blob_sha256": "b84ae6bd2f39c2064e08d2fd3f49a9f9bc4a73f9355179fa01d407f407dbae7e",
       "source_lf_sha256": "b84ae6bd2f39c2064e08d2fd3f49a9f9bc4a73f9355179fa01d407f407dbae7e",
-      "target_sha256": "c3c196681daa6cf49ceeb332f3b7fb1ce5cbee4615b21e72dde99dbdf57e2aba",
-      "target_lf_sha256": "c3c196681daa6cf49ceeb332f3b7fb1ce5cbee4615b21e72dde99dbdf57e2aba",
+      "target_sha256": "3d308f046904506f242b03fd5267162b0a47e40130ffe30e840ef79dbb84ff12",
+      "target_lf_sha256": "3d308f046904506f242b03fd5267162b0a47e40130ffe30e840ef79dbb84ff12",
       "changed": true,
-      "reason": "Scoped release branding/documentation or dedicated DB safety prefix; see change register"
+      "reason": "Scoped public Demo authentication, proxy or resource preparation; original source evidence preserved"
     },
     {
       "source": ".gitattributes",
@@ -286,10 +286,10 @@
       "source_sha256": "6475c691a221da11275df7eeaaf1bd1ee05cc68918bd5254ebd14af5d1f0d78f",
       "source_git_blob_sha256": "a60371d2d0bf34292416cfa76f40ce9cf999027eb5d3d0e221a52cb07d170671",
       "source_lf_sha256": "a60371d2d0bf34292416cfa76f40ce9cf999027eb5d3d0e221a52cb07d170671",
-      "target_sha256": "187c91c55f1adbb377d2d68953fbb84074a5821b9f84916fc2ccc1dd306e9efd",
-      "target_lf_sha256": "187c91c55f1adbb377d2d68953fbb84074a5821b9f84916fc2ccc1dd306e9efd",
+      "target_sha256": "d6cf7682932175665b8c87617ff59c1f92b5cc042b37bab8c6cfb1df76aacf51",
+      "target_lf_sha256": "d6cf7682932175665b8c87617ff59c1f92b5cc042b37bab8c6cfb1df76aacf51",
       "changed": true,
-      "reason": "Scoped release branding/documentation or dedicated DB safety prefix; see change register"
+      "reason": "Scoped public Demo authentication, proxy or resource preparation; original source evidence preserved"
     },
     {
       "source": "apps/api/src/common/deployment-safety.ts",
@@ -297,10 +297,10 @@
       "source_sha256": "a2a5936c17f52102ab998573c5bbec525bea0475986e4cf7957f0ea6a3245769",
       "source_git_blob_sha256": "a1cc6ab92f547fa7dd1f2e7436ba3c6d707925c7bd5dfc1f71cd43fc1a680f26",
       "source_lf_sha256": "a1cc6ab92f547fa7dd1f2e7436ba3c6d707925c7bd5dfc1f71cd43fc1a680f26",
-      "target_sha256": "0506c528b59ea62f83c1bb6e851d160c6f0db87291bb24a171af7e64e6f883c9",
-      "target_lf_sha256": "0506c528b59ea62f83c1bb6e851d160c6f0db87291bb24a171af7e64e6f883c9",
+      "target_sha256": "c88e29baed37663f89fe36e67081a6c39854ab339a55f298f4f6e470aecdb02e",
+      "target_lf_sha256": "c88e29baed37663f89fe36e67081a6c39854ab339a55f298f4f6e470aecdb02e",
       "changed": true,
-      "reason": "Scoped release branding/documentation or dedicated DB safety prefix; see change register"
+      "reason": "Scoped public Demo authentication, proxy or resource preparation; original source evidence preserved"
     },
     {
       "source": "apps/api/src/common/isolated-environment.ts",
@@ -319,10 +319,10 @@
       "source_sha256": "1d389a807324d66a2b8e49d679ef5d77bdae849ad38c69fa50693d4a74b0d8e2",
       "source_git_blob_sha256": "bc3ba0d8e5a0b394cec35a85b7e6ba23151d731eefb1287a227f05cfe5f89628",
       "source_lf_sha256": "bc3ba0d8e5a0b394cec35a85b7e6ba23151d731eefb1287a227f05cfe5f89628",
-      "target_sha256": "1d389a807324d66a2b8e49d679ef5d77bdae849ad38c69fa50693d4a74b0d8e2",
-      "target_lf_sha256": "bc3ba0d8e5a0b394cec35a85b7e6ba23151d731eefb1287a227f05cfe5f89628",
-      "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "target_sha256": "2f7fa3d95e2b49ebf8534565b15e33b1e8b81c3a7d61280d6cc97ac87f146a45",
+      "target_lf_sha256": "0bdd1da4218b02369545e1ae261e8e0e335b3426ffc07b46ae1f3e3f5460ffb0",
+      "changed": true,
+      "reason": "Scoped public Demo authentication, proxy or resource preparation; original source evidence preserved"
     },
     {
       "source": "apps/api/src/config/.gitkeep",
@@ -341,10 +341,10 @@
       "source_sha256": "f94979185a0883047e60b3b594f394b7707d3940f873f671d3bcf47991481b34",
       "source_git_blob_sha256": "25870901875340f23fb595e61ee21164f11cd8a344cf4e7888008ea4a07a7145",
       "source_lf_sha256": "25870901875340f23fb595e61ee21164f11cd8a344cf4e7888008ea4a07a7145",
-      "target_sha256": "f94979185a0883047e60b3b594f394b7707d3940f873f671d3bcf47991481b34",
-      "target_lf_sha256": "25870901875340f23fb595e61ee21164f11cd8a344cf4e7888008ea4a07a7145",
-      "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "target_sha256": "605c4ba8807658dc93298574cb969b19e89b516d63e835439cb07d6f831e10a4",
+      "target_lf_sha256": "b9296d3fcf2c6936616c8cfb48ea37f402d1988d860e2bc5ced02cdf89212cb6",
+      "changed": true,
+      "reason": "Scoped public Demo authentication, proxy or resource preparation; original source evidence preserved"
     },
     {
       "source": "apps/api/src/modules/accounts/.gitkeep",
@@ -473,10 +473,10 @@
       "source_sha256": "83b1d599f79398d061ab6d9f2fe0639ff9a1ed33711a9d550cbaffd4df213075",
       "source_git_blob_sha256": "db7b2027900c1650bc3daa15affeba943a2d2b2fc3df011273836c87cbf8683b",
       "source_lf_sha256": "db7b2027900c1650bc3daa15affeba943a2d2b2fc3df011273836c87cbf8683b",
-      "target_sha256": "83b1d599f79398d061ab6d9f2fe0639ff9a1ed33711a9d550cbaffd4df213075",
-      "target_lf_sha256": "db7b2027900c1650bc3daa15affeba943a2d2b2fc3df011273836c87cbf8683b",
-      "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "target_sha256": "007b482e1aadb4f96a0bf97c4e178d2cbf5b2b0b7d45aa22af798232b4436682",
+      "target_lf_sha256": "3c387eb9b7bee07f94cc5c759596f4b8267a0df9d66075bffc9748b3aa355601",
+      "changed": true,
+      "reason": "Scoped public Demo authentication, proxy or resource preparation; original source evidence preserved"
     },
     {
       "source": "apps/api/src/modules/backtests/backtest.controller.ts",
@@ -3113,10 +3113,10 @@
       "source_sha256": "becd16207f507f72119ca7cdd7cc2997df6585c3472afeb017456494097f51ac",
       "source_git_blob_sha256": "b9d32eaa7c464d6ffbbe8f4af0e334766c47191d4345f5fb935095cfe488ad15",
       "source_lf_sha256": "b9d32eaa7c464d6ffbbe8f4af0e334766c47191d4345f5fb935095cfe488ad15",
-      "target_sha256": "6f46a4b60f8f44484493baadd95760baca230f8a7576c697c539665f91ff2140",
-      "target_lf_sha256": "6f46a4b60f8f44484493baadd95760baca230f8a7576c697c539665f91ff2140",
+      "target_sha256": "652b65b22eeb44a26624112a7c801b9c0588356d35862e642f4a0f3321ed22a3",
+      "target_lf_sha256": "652b65b22eeb44a26624112a7c801b9c0588356d35862e642f4a0f3321ed22a3",
       "changed": true,
-      "reason": "Scoped release branding/documentation or dedicated DB safety prefix; see change register"
+      "reason": "Scoped public Demo authentication, proxy or resource preparation; original source evidence preserved"
     },
     {
       "source": "apps/web/components/backtest-charts.tsx",
@@ -3465,10 +3465,10 @@
       "source_sha256": "f5735a8f538b53a38c05f205ddf706855694e1329cae98412d00839d947049f3",
       "source_git_blob_sha256": "02bef2d3659a32ace3a5ba8d40fd4c47487447e3b3da9e327facf4b5d76a9cb0",
       "source_lf_sha256": "02bef2d3659a32ace3a5ba8d40fd4c47487447e3b3da9e327facf4b5d76a9cb0",
-      "target_sha256": "f5735a8f538b53a38c05f205ddf706855694e1329cae98412d00839d947049f3",
-      "target_lf_sha256": "02bef2d3659a32ace3a5ba8d40fd4c47487447e3b3da9e327facf4b5d76a9cb0",
-      "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "target_sha256": "4bda32d85e7e56959f0671e6b524c5488d786ff3a6537a9d4b8734019b1ff435",
+      "target_lf_sha256": "1cafc5e480fb6aa6d0cdd3446c4494c28176caef0952551b65415b83f322664b",
+      "changed": true,
+      "reason": "Scoped public Demo authentication, proxy or resource preparation; original source evidence preserved"
     },
     {
       "source": "apps/web/lib/stores/shell-store.ts",
@@ -3905,10 +3905,10 @@
       "source_sha256": "5965417684eabb014d8c017e667bc59297b04bf0c0ce55282f06ea1f84f6e1e1",
       "source_git_blob_sha256": "338b9062090668ed09f9b88e8cf5f73eec0154b528799d459209ef4e308a6c32",
       "source_lf_sha256": "338b9062090668ed09f9b88e8cf5f73eec0154b528799d459209ef4e308a6c32",
-      "target_sha256": "73314915ec1d6b51b437424585be52c290804977d63b756c1c356d937877d9c9",
-      "target_lf_sha256": "73314915ec1d6b51b437424585be52c290804977d63b756c1c356d937877d9c9",
+      "target_sha256": "720a5984df7bbf7b2ba63927684e5b9287d6bdf2126a6bc5d8c340f465b44cba",
+      "target_lf_sha256": "720a5984df7bbf7b2ba63927684e5b9287d6bdf2126a6bc5d8c340f465b44cba",
       "changed": true,
-      "reason": "Scoped release branding/documentation or dedicated DB safety prefix; see change register"
+      "reason": "Scoped public Demo authentication, proxy or resource preparation; original source evidence preserved"
     },
     {
       "source": "deploy/linux/init-database.sh",
@@ -4004,10 +4004,10 @@
       "source_sha256": "c039f979a25f307419294cbb4201968942cfd0cc72ace689d07fd3894cd84f77",
       "source_git_blob_sha256": "3edbffe73a898f6180e4a85c0bbe863a31f55e0a3c21e4729a488d7f6107c144",
       "source_lf_sha256": "3edbffe73a898f6180e4a85c0bbe863a31f55e0a3c21e4729a488d7f6107c144",
-      "target_sha256": "d932ac448591ad70d646f775b577714e7a7e25258decfedc21b8bf6845308c46",
-      "target_lf_sha256": "be091f8adea2a685b560a31c340de99e01f1ffba799857711900a0628b436a9b",
+      "target_sha256": "46cde7ee985eed78339dac58759293680fb235dbede0b320e43394b4b2944bac",
+      "target_lf_sha256": "3b8007dae77144a201fb2fadadbd3e5e34a38a12932d9afef3cf8f734f0fb828",
       "changed": true,
-      "reason": "Scoped release branding/documentation or dedicated DB safety prefix; see change register"
+      "reason": "Scoped public Demo authentication, proxy or resource preparation; original source evidence preserved"
     },
     {
       "source": "docs/BACKUP_RECOVERY.md",
@@ -4092,10 +4092,10 @@
       "source_sha256": "c4f475e2085df0cb3ccd4bd5818d5bd7afbf930430e81047beaa2698ab71cbc6",
       "source_git_blob_sha256": "0032c6a3a499a4980ddacab0d20684e1a98e395e91f31bb2d89f4fc722841112",
       "source_lf_sha256": "0032c6a3a499a4980ddacab0d20684e1a98e395e91f31bb2d89f4fc722841112",
-      "target_sha256": "45083e037e19a8f8c3a20c0d395efe66a604c7424dbec93b4de8cfae75bc172b",
-      "target_lf_sha256": "45083e037e19a8f8c3a20c0d395efe66a604c7424dbec93b4de8cfae75bc172b",
+      "target_sha256": "02ee87035c8a01aa719ea998ff1cb3dbda8fdec356912957f0dbe6eb7dc11ace",
+      "target_lf_sha256": "02ee87035c8a01aa719ea998ff1cb3dbda8fdec356912957f0dbe6eb7dc11ace",
       "changed": true,
-      "reason": "Scoped release branding/documentation or dedicated DB safety prefix; see change register"
+      "reason": "Scoped public Demo authentication, proxy or resource preparation; original source evidence preserved"
     },
     {
       "source": "docs/THIRD_PARTY_INVENTORY.json",
@@ -4825,7 +4825,7 @@
     },
     {
       "target": "scripts/release-verify.py",
-      "target_sha256": "1b7bd2ea7ca0f6b5f949c93c36dc46f16e82259b69f19bc261d801beae90f749",
+      "target_sha256": "47d19f85581eb8425374bea57c4dc67317d06debc025f01d4f930a172e429ced",
       "reason": "New independent release documentation or verification helper"
     },
     {
@@ -4840,8 +4840,58 @@
     },
     {
       "target": "scripts/test_release_verify.py",
-      "target_sha256": "a3b749f595a0504b69dd6d3ed1e379dec9edcd0d072d17ea77eaa8253cb3ec4a",
+      "target_sha256": "3569be1530739b2e4ad17f6a8348b47e9dd68e649ac15c07923ad3475a42268e",
       "reason": "Positive and negative tests for same-tree Codex auxiliary-ref validation"
+    },
+    {
+      "target": "apps/api/src/common/production-security.test.ts",
+      "target_sha256": "76a159cbbcecb4f91fbd66ed82716dc383133af7ca9e63c9f469bcc5ae90ab0a",
+      "reason": "Public Demo multi-visitor authentication, isolation, deployment configuration or targeted regression test"
+    },
+    {
+      "target": "apps/api/src/common/trusted-proxy.test.ts",
+      "target_sha256": "9a6145beabb4a3b16625e75a9549c3c0f859911dc44f6c359526aa1e4b21ae2f",
+      "reason": "Public Demo multi-visitor authentication, isolation, deployment configuration or targeted regression test"
+    },
+    {
+      "target": "apps/api/src/common/trusted-proxy.ts",
+      "target_sha256": "e68be61c14593cbde271ab6e21b39fa6114ded4a7c70bd47bbda8b843205144d",
+      "reason": "Public Demo multi-visitor authentication, isolation, deployment configuration or targeted regression test"
+    },
+    {
+      "target": "deploy/linux/nginx.public-demo.conf.template",
+      "target_sha256": "5777dcca93c9af738af49666221a7a6da36323cbb18e2a8b2442f8577db55a89",
+      "reason": "Public Demo multi-visitor authentication, isolation, deployment configuration or targeted regression test"
+    },
+    {
+      "target": "deploy/linux/public-demo.env.example",
+      "target_sha256": "2d3ed9b1e8f0f9cecdf9fe9e181c39edf3c3d7a53b449661705c48aa818ba3c9",
+      "reason": "Public Demo multi-visitor authentication, isolation, deployment configuration or targeted regression test"
+    },
+    {
+      "target": "docker-compose.public-demo.yml",
+      "target_sha256": "dc9ba6bd55e492a6d0e55ff8b3d1b55a235afd59d72c042d995de5bfd2fe5998",
+      "reason": "Public Demo multi-visitor authentication, isolation, deployment configuration or targeted regression test"
+    },
+    {
+      "target": "playwright.public-demo.config.ts",
+      "target_sha256": "be5ac8de786ac8770228d150592100bb53432173eafd04fde798ede15a1cc431",
+      "reason": "Public Demo multi-visitor authentication, isolation, deployment configuration or targeted regression test"
+    },
+    {
+      "target": "scripts/test_public_demo_deployment.py",
+      "target_sha256": "ca87f16ca4c78b6ab28c34306ab64cc9caaf087b317528a0045d317a3c7d0c38",
+      "reason": "Public Demo multi-visitor authentication, isolation, deployment configuration or targeted regression test"
+    },
+    {
+      "target": "tests/integration/public-demo-auth.integration.test.ts",
+      "target_sha256": "499f27c44493719e9d1df7bde9ea862900609e5156d0383426d9ad70d10164d2",
+      "reason": "Public Demo multi-visitor authentication, isolation, deployment configuration or targeted regression test"
+    },
+    {
+      "target": "tests/public-demo/public-demo.browser.spec.ts",
+      "target_sha256": "2a63ee1650a4a620c28f5cab0f449d5f5caedfbdd5818af870e518e5d6f75197",
+      "reason": "Public Demo multi-visitor authentication, isolation, deployment configuration or targeted regression test"
     }
   ],
   "self_reference_note": "Every retained/added public file has actual target SHA-256 except this JSON manifest itself. Its existence and exact tracked-file set are required; Git covers its final content. Source hashes remain immutable.",

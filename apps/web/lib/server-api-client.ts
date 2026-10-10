@@ -9,6 +9,7 @@ export async function fetchWithFallback<T>(path: string, fallback: T): Promise<A
     const response = await fetch(`${process.env.API_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5089"}${path}`, {
       cache: "no-store", signal: AbortSignal.timeout(1800),
       headers: { Accept: "application/json", Cookie: incoming.get("cookie") ?? "",
+        ...(incoming.get("x-forwarded-for") ? { "X-Forwarded-For": incoming.get("x-forwarded-for")! } : {}),
         ...(incoming.get("x-forwarded-proto") ? { "X-Forwarded-Proto": incoming.get("x-forwarded-proto")! } : {}) },
     });
     if (!response.ok) throw new Error("API data unavailable");

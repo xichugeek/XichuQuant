@@ -14,6 +14,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 
 import { PrismaService } from "../../prisma/prisma.service";
+import { publicDemoSessionLimit } from "../../common/deployment-safety";
 
 const FAILURE_WINDOW_MS = 15 * 60 * 1_000;
 const MAX_FAILURES = 5;
@@ -51,6 +52,8 @@ export class AuthService {
     const username = usernameInput.trim().toLowerCase();
     const addressHash = hash(address);
     const since = new Date(Date.now() - FAILURE_WINDOW_MS);
+    const demo = this.config.get<string>("PUBLIC_DEMO_READ_ONLY", "false") === "true";
+    if (demo) await this.prisma.loginAttempt.deleteMany({ where: { occurredAt: { lt: since } } });
     const failures = await this.prisma.loginAttempt.count({
       where: { addressHash, normalizedUsername: username, occurredAt: { gte: since }, succeeded: false },
     });
@@ -68,25 +71,37 @@ export class AuthService {
     const sessionToken = randomBytes(32).toString("base64url");
     const csrfToken = randomBytes(32).toString("base64url");
     const ttlHours = Math.min(
-      24,
-      Math.max(1, Number(this.config.get<string>("SESSION_TTL_HOURS", "8"))),
+      demo ? 4 : 24,
+      Math.max(1, Number(this.config.get<string>("SESSION_TTL_HOURS", demo ? "1" : "8")) || (demo ? 1 : 8)),
     );
     const expiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1_000);
-    await this.prisma.$transaction([
-      this.prisma.userSession.updateMany({
-        where: { userId: user.id, revokedAt: null },
-        data: { revokedAt: new Date() },
-      }),
-      this.prisma.userSession.create({
-        data: {
-          csrfHash: hash(csrfToken),
-          expiresAt,
-          lastSeenAt: new Date(),
-          tokenHash: hash(sessionToken),
-          userId: user.id,
-        },
-      }),
-    ]);
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        await this.prisma.$transaction(async (tx) => {
+          const now = new Date();
+          if (demo) {
+            await tx.userSession.deleteMany({
+              where: { userId: user.id, OR: [{ expiresAt: { lte: now } }, { revokedAt: { not: null } }] },
+            });
+            const limit = publicDemoSessionLimit(this.config.get<string>("PUBLIC_DEMO_MAX_SESSIONS"));
+            const active = await tx.userSession.count({ where: { userId: user.id, revokedAt: null, expiresAt: { gt: now } } });
+            if (active >= limit) {
+              throw new HttpException("演示访客会话已达上限，请在其他会话退出或到期后重试", HttpStatus.TOO_MANY_REQUESTS);
+            }
+          } else {
+            await tx.userSession.updateMany({ where: { userId: user.id, revokedAt: null }, data: { revokedAt: now } });
+          }
+          await tx.userSession.create({
+            data: { csrfHash: hash(csrfToken), expiresAt, lastSeenAt: now, tokenHash: hash(sessionToken), userId: user.id },
+          });
+        }, { isolationLevel: "Serializable" });
+        break;
+      } catch (error) {
+        // SQL Server can choose a deadlock victim when concurrent logins fill the last slot.
+        // Retry the complete transaction; never evict another visitor or exceed the cap.
+        if (attempt >= 2 || !error || typeof error !== "object" || !("code" in error) || error.code !== "P2034") throw error;
+      }
+    }
     return {
       csrfToken,
       displayName: user.displayName ?? user.username,
