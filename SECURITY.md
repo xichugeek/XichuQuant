@@ -12,4 +12,4 @@
 
 请联系维护者取得私密报告渠道，提供脱敏复现、影响范围和时间。未确认私密渠道前，不在公共 Issue/PR 放敏感细节；本文件不假设 GitHub private vulnerability reporting 已开启。
 
-新项目独立历史与隐私结果见 docs/PRIVACY_AUDIT_REPORT.md；公开推送、许可证和 Release PENDING_APPROVAL。安全报告不是外部认证声明。
+新项目独立历史与隐私结果见 docs/PRIVACY_AUDIT_REPORT.md；维护者原创部分采用 MIT（Copyright (c) 2026 XichuGeek）；第三方许可独立。公开 Push 和 Release PENDING_APPROVAL。安全报告不是外部认证声明。

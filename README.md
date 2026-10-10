@@ -2,7 +2,7 @@
 
 **XichuQuant — Quantitative Trading & Risk Management** 是完整的量化研究、交易风险控制和模拟交易系统，供个人用户在自己的电脑上运行。它不保证收益，合成数据回测也不构成历史盈利证据。
 
-本项目的独立发行候选版本为 **v1.0.0**，完整继承已审定 V1.11 功能。当前处于本地发行验收：**许可证仍为 UNLICENSED，公开 Push、Tag、Release 均等待维护者审批**。
+本项目的独立发行候选版本为 **v1.0.0**，完整继承已审定 V1.11 功能。当前处于本地发行验收：**原创部分采用 MIT；公开 Push、Tag、Release 均等待维护者审批**。
 
 ## 功能与界面
 
@@ -24,7 +24,7 @@ pnpm workspace 管理四个应用与共享包，Playwright 验证桌面和手机
 
 ## 安装环境
 
-Windows 10/11 或 Windows Server x64；Node.js >=22.12.0、Corepack、pnpm 11.9.0、Python 3.12 x64、SQL Server 2019+、Microsoft sqlcmd。SQL Server 需 SQL 身份认证、TCP 和独立库权限。Linux 推荐 Docker Engine/Compose，SQL Server 镜像需受支持的 x86-64 环境。
+**推荐用户本地部署。** Windows 10/11 或 Windows Server x64；Node.js >=22.12.0、Corepack、pnpm 11.9.0、Python 3.12 x64、SQL Server 2019+、Microsoft sqlcmd。SQL Server 需 SQL 身份认证、TCP 和独立库权限。Linux 推荐 Docker Engine/Compose，SQL Server 镜像需受支持的 x86-64 环境。
 
 ## Windows 本地安装
 
@@ -119,4 +119,8 @@ corepack pnpm build
 
 ## 许可证
 
-目标是免费开源发行，当前没有生效的开源许可证，根 `LICENSE` 是待批准通知。建议 MIT，Apache-2.0 为另一候选，最终需维护者确认版权主体及贡献者授权。第三方与市场数据保留各自许可，不由项目许可证重新授予。见 [许可审查](docs/OPEN_SOURCE_LICENSE_REVIEW.md)、[第三方说明](docs/THIRD_PARTY_NOTICES.md) 与 [机器清单](docs/THIRD_PARTY_INVENTORY.json)。
+维护者有权授权的项目原创部分采用 [MIT License](LICENSE)，**Copyright (c) 2026 XichuGeek**。分发时保留版权与许可通知；完整授权与免责条款以根 LICENSE 为准。
+
+第三方依赖、独立许可组件、SQL Server、IBKR 官方客户端与市场数据保留各自许可和使用条件，项目 MIT 不重新授权这些内容。当前交付范围为 Windows 本地源码仓库，包含依赖声明与锁文件，不包含 node_modules、虚拟环境、前端构建产物、浏览器、客户端或系统二进制。未来分发含依赖的 ZIP 或 Docker 镜像前须补充实际产物清单、原版权/NOTICE 与适用源码获取要求。
+
+见 [许可审查](docs/OPEN_SOURCE_LICENSE_REVIEW.md)、[第三方说明](docs/THIRD_PARTY_NOTICES.md)、[机器清单](docs/THIRD_PARTY_INVENTORY.json) 与 [最终发布验收](docs/FINAL_PUBLICATION_AUDIT.md)。MIT 已获维护者批准；本轮未公开推送，Push、Tag、Release 仍需单独明确授权。

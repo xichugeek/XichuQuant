@@ -2,7 +2,7 @@
 
 日期：2026-10-10（Asia/Shanghai）。来源为 XichuRisk 的干净审定提交 `37f5e4e750abd515f5bce0c92b1493be815628e0`，分支 `codex/v1.11-open-source-release`。从 Git 跟踪树明确允许清单执行 archive，未复制工作区、旧 .git、refs、Tag 或 bundle。
 
-原始跟踪文件 **450**；保留 **414** 个源文件（其中业务/Schema/Migration/测试源码 **296**）；排除 **36** 个历史文件。字节完全一致 **371** 个，审阅变更 **43** 个。新增加独立发行报告、机器清单、Changelog 和只读核验脚本，最终文件数量见 JSON 的 `target_public_count`；所有 414 个保留源文件有源/目标 SHA-256。
+原始跟踪文件 **450**；保留 **414** 个源文件（其中业务/Schema/Migration/测试源码 **296**）；排除 **36** 个历史文件。字节完全一致 **365** 个，审阅变更 **49** 个（包括本轮 6 个子包新增 MIT 元数据）。新增加独立发行报告、机器清单、Changelog 和只读核验脚本，最终文件数量见 JSON 的 `target_public_count`；所有 414 个保留源文件有源/目标 SHA-256。
 
 [机器清单](SOURCE_COPY_MANIFEST.json) 列出每个保留文件的源路径、目标路径、SHA-256、变更标记，并枚举所有排除项。source_sha256 是审定 git archive 导出字节，source_git_blob_sha256 是审定 Git blob 原字节，目标值来自实际文件；两者分别记录，避免原项目 autocrlf 导出换行与 Git blob 不同造成误判。LF 归一化散列用于跨 Windows/Linux 内容核验，原始字节散列另保留。
 
@@ -26,18 +26,22 @@ Dashboard、账户/持仓、CSV 导入、行情、策略、回测、样本外、
 | `.env.example` | `.env.example` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
 | `.env.production.example` | `.env.production.example` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
 | `.gitignore` | `.gitignore` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
-| `LICENSE` | `LICENSE` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
-| `README.md` | `README.md` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
-| `SECURITY.md` | `SECURITY.md` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
+| `LICENSE` | `LICENSE` | MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change |
+| `README.md` | `README.md` | MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change |
+| `SECURITY.md` | `SECURITY.md` | MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change |
+| `apps/api/package.json` | `apps/api/package.json` | MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change |
 | `apps/api/src/app.service.ts` | `apps/api/src/app.service.ts` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
 | `apps/api/src/common/deployment-safety.test.ts` | `apps/api/src/common/deployment-safety.test.ts` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
 | `apps/api/src/common/deployment-safety.ts` | `apps/api/src/common/deployment-safety.ts` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
 | `apps/api/src/modules/broker-execution/phase-b-safety.test.ts` | `apps/api/src/modules/broker-execution/phase-b-safety.test.ts` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
 | `apps/api/src/modules/broker-sync/broker-v1.7.test.ts` | `apps/api/src/modules/broker-sync/broker-v1.7.test.ts` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
+| `apps/broker-connector/package.json` | `apps/broker-connector/package.json` | MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change |
 | `apps/quant-engine/app/creator_factor_research.py` | `apps/quant-engine/app/creator_factor_research.py` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
 | `apps/quant-engine/app/main.py` | `apps/quant-engine/app/main.py` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
+| `apps/quant-engine/package.json` | `apps/quant-engine/package.json` | MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change |
 | `apps/web/app/login/page.tsx` | `apps/web/app/login/page.tsx` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
 | `apps/web/components/app-shell.tsx` | `apps/web/components/app-shell.tsx` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
+| `apps/web/package.json` | `apps/web/package.json` | MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change |
 | `database/prisma/seed-safety.ts` | `database/prisma/seed-safety.ts` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
 | `database/prisma/seed.ts` | `database/prisma/seed.ts` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
 | `deploy/linux/certify-phase-c.sh` | `deploy/linux/certify-phase-c.sh` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
@@ -50,14 +54,16 @@ Dashboard、账户/持仓、CSV 导入、行情、策略、回测、样本外、
 | `docs/DOCKER_LOCAL_DEPLOYMENT.md` | `docs/DOCKER_LOCAL_DEPLOYMENT.md` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
 | `docs/FAQ.md` | `docs/FAQ.md` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
 | `docs/IBKR_LOCAL_SETUP.md` | `docs/IBKR_LOCAL_SETUP.md` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
-| `docs/LICENSE_REVIEW.md` | `docs/OPEN_SOURCE_LICENSE_REVIEW.md` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
+| `docs/LICENSE_REVIEW.md` | `docs/OPEN_SOURCE_LICENSE_REVIEW.md` | MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change |
 | `docs/LOCAL_INSTALLATION_GUIDE.md` | `docs/LOCAL_INSTALLATION_GUIDE.md` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
 | `docs/PUBLIC_DEMO_DEPLOYMENT_PLAN.md` | `docs/PUBLIC_DEMO_DEPLOYMENT_PLAN.md` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
-| `docs/THIRD_PARTY_INVENTORY.json` | `docs/THIRD_PARTY_INVENTORY.json` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
-| `docs/THIRD_PARTY_NOTICES.md` | `docs/THIRD_PARTY_NOTICES.md` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
+| `docs/THIRD_PARTY_INVENTORY.json` | `docs/THIRD_PARTY_INVENTORY.json` | MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change |
+| `docs/THIRD_PARTY_NOTICES.md` | `docs/THIRD_PARTY_NOTICES.md` | MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change |
 | `docs/TROUBLESHOOTING.md` | `docs/TROUBLESHOOTING.md` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
-| `package.json` | `package.json` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
+| `package.json` | `package.json` | MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change |
+| `packages/shared/package.json` | `packages/shared/package.json` | MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change |
 | `packages/shared/src/index.ts` | `packages/shared/src/index.ts` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
+| `packages/validators/package.json` | `packages/validators/package.json` | MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change |
 | `scripts/backup-database.ps1` | `scripts/backup-database.ps1` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
 | `scripts/install-daily-backup-task.ps1` | `scripts/install-daily-backup-task.ps1` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
 | `scripts/restore-test-database.ps1` | `scripts/restore-test-database.ps1` | Scoped release branding/documentation or dedicated DB safety prefix; see change register |
@@ -109,4 +115,4 @@ Dashboard、账户/持仓、CSV 导入、行情、策略、回测、样本外、
 
 另外旧 .git/.git/codex-checkpoints、实际 .env、凭据、私人 CSV/导入、SQL 数据/备份、持仓快照、真实事故资料、Agent 日志/截图/Temp、浏览器状态、私人媒体/PDF/Word、node_modules/构建/缓存/虚拟环境均不在允许清单，未从源项目复制。没有扫描后静默删除业务模块。
 
-运行 `python scripts/release-verify.py` 可核验目标散列、允许文件集合和独立 Git；如维护者有源项目，可追加 `--source <原只读目录>` 比较审定源 blob。报告/manifest 的自引用文件只登记路径，不伪造自引用 SHA；提交散列由 Git 验证。
+运行 `python scripts/release-verify.py` 可核验目标散列、允许文件集合和独立 Git；如维护者有源项目，可追加 `--source <原只读目录>` 比较审定源 blob。所有保留源文件与新增发行文件都有实际目标 SHA，唯一例外是 SOURCE_COPY_MANIFEST.json 自身，避免不可能的自引用哈希；该文件仍要求存在、列入完整跟踪集合，并由最终 Git 提交保护。校验另固定独立根提交，检查所有 refs、无旧历史与仅匹配已审计提交树的 Codex 本地快照。

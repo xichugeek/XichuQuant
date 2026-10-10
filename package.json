@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "XichuQuant — Quantitative Trading & Risk Management / 西楚量化交易系统",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "packageManager": "pnpm@11.9.0",
   "engines": {
     "node": ">=22.12.0",

@@ -5,10 +5,10 @@
   "source_tracked_count": 450,
   "retained_count": 414,
   "source_code_count": 296,
-  "unchanged_count": 371,
-  "changed_count": 43,
+  "unchanged_count": 365,
+  "changed_count": 49,
   "excluded_count": 36,
-  "target_public_count": 425,
+  "target_public_count": 427,
   "allowed_prefixes": [
     "apps/web/",
     "apps/api/",
@@ -176,10 +176,10 @@
       "source_sha256": "df1fc508ee65fbff9d12a3797498721bd32ef58c622e09108d751935119afde2",
       "source_git_blob_sha256": "d534b0a58562abbd87406cd4806048a94d03406d11df10196ad71cbae0f28519",
       "source_lf_sha256": "d534b0a58562abbd87406cd4806048a94d03406d11df10196ad71cbae0f28519",
-      "target_sha256": "421a7a3b38455a3b583aef8ff738e38d44eb171125c1ecd011e80503dc81497d",
-      "target_lf_sha256": "5652665c5540ba7eb2fd7af41e9a5c147c22824f60f7ac1798f902411032651d",
+      "target_sha256": "2f164d0d8f139a88156b31658ab42ee679b60180bad3e7bc5711cc332df4aa7f",
+      "target_lf_sha256": "636243a01a9de893acda062a46f69269901e251b7943a85ee6c4ee0ea1d4bfbf",
       "changed": true,
-      "reason": "Scoped release branding/documentation or dedicated DB safety prefix; see change register"
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "README.md",
@@ -187,10 +187,10 @@
       "source_sha256": "db294221dc80fbae0b390d11c286bd1d7aaef3df4cf3d75d0377dc27143fddac",
       "source_git_blob_sha256": "cbc33f0066a51790305d26f82c96ba34403eede407bc1fd3f150261e6fbace25",
       "source_lf_sha256": "cbc33f0066a51790305d26f82c96ba34403eede407bc1fd3f150261e6fbace25",
-      "target_sha256": "fba9ceb98526dff1f411c6027f2e0269cbf2784af45061a0118b8ff5f71f0793",
-      "target_lf_sha256": "fba9ceb98526dff1f411c6027f2e0269cbf2784af45061a0118b8ff5f71f0793",
+      "target_sha256": "2f43e9061533a6fbe9a03b1a38a10965c31dbdcae17b5a76cf66ffc4408b9264",
+      "target_lf_sha256": "2f43e9061533a6fbe9a03b1a38a10965c31dbdcae17b5a76cf66ffc4408b9264",
       "changed": true,
-      "reason": "Scoped release branding/documentation or dedicated DB safety prefix; see change register"
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "SECURITY.md",
@@ -198,10 +198,10 @@
       "source_sha256": "c09b6789eabe5c49bad1defa703bf915523a1a129d7e3afa16b97ee01d9891c7",
       "source_git_blob_sha256": "210b6a4b61170fd1e7cbb23b431b288a05236df4408f5aa0cfc3487e8e809316",
       "source_lf_sha256": "210b6a4b61170fd1e7cbb23b431b288a05236df4408f5aa0cfc3487e8e809316",
-      "target_sha256": "9793fa3ce2573d4c4dd948a2192c445f98037585cd2ad120faa65eda6b7881a6",
-      "target_lf_sha256": "9793fa3ce2573d4c4dd948a2192c445f98037585cd2ad120faa65eda6b7881a6",
+      "target_sha256": "bbddd970173fac9c4ca3ae0b54223d92c01d63f11c6757a3f6809ea4840d6f0e",
+      "target_lf_sha256": "bbddd970173fac9c4ca3ae0b54223d92c01d63f11c6757a3f6809ea4840d6f0e",
       "changed": true,
-      "reason": "Scoped release branding/documentation or dedicated DB safety prefix; see change register"
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "apps/api/nest-cli.json",
@@ -220,10 +220,10 @@
       "source_sha256": "5ca3546ddc40ef46606d042b4526b39dff70563ab3079326c2e0724d1ec4baef",
       "source_git_blob_sha256": "00abe4fa192cc9da84f5ed5f0a02834e0fbd860eee09ed1ee406527e9fd14585",
       "source_lf_sha256": "00abe4fa192cc9da84f5ed5f0a02834e0fbd860eee09ed1ee406527e9fd14585",
-      "target_sha256": "5ca3546ddc40ef46606d042b4526b39dff70563ab3079326c2e0724d1ec4baef",
-      "target_lf_sha256": "00abe4fa192cc9da84f5ed5f0a02834e0fbd860eee09ed1ee406527e9fd14585",
-      "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "target_sha256": "da0dca96ef99526e78c6591875b711efa3ec8f846037b88fc5c9aa02156a7e66",
+      "target_lf_sha256": "09d204a18716a3f076d737ee9bd079ff2f4399a5037708f80289d9928b86c526",
+      "changed": true,
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "apps/api/src/app.controller.ts",
@@ -2123,10 +2123,10 @@
       "source_sha256": "4e53b42e24e8db2ac1ba1f551d715733c9a1898d162e4705ee359d08ba0f42e2",
       "source_git_blob_sha256": "bf4985518614a395c8813161b98e0222db9bace33254141271f05ddab6bb2284",
       "source_lf_sha256": "bf4985518614a395c8813161b98e0222db9bace33254141271f05ddab6bb2284",
-      "target_sha256": "4e53b42e24e8db2ac1ba1f551d715733c9a1898d162e4705ee359d08ba0f42e2",
-      "target_lf_sha256": "bf4985518614a395c8813161b98e0222db9bace33254141271f05ddab6bb2284",
-      "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "target_sha256": "aa15ae421642759d566e1925dfec1eed51c12037a23cdb5b537be4af29bfccb9",
+      "target_lf_sha256": "f0940dc50ea978b523d0bf366e538ce3bc8bb575b2ef1ee4c22add4a1e542223",
+      "changed": true,
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "apps/broker-connector/src/broker-provider.ts",
@@ -2431,10 +2431,10 @@
       "source_sha256": "c25a12c7a202330e4336626ba5243445c94c946567b570bfae123336d8191cf5",
       "source_git_blob_sha256": "7d4de8f1db679c00740cd3b486c16c2d5185d78659785abf0307fc16fdbc1586",
       "source_lf_sha256": "7d4de8f1db679c00740cd3b486c16c2d5185d78659785abf0307fc16fdbc1586",
-      "target_sha256": "c25a12c7a202330e4336626ba5243445c94c946567b570bfae123336d8191cf5",
-      "target_lf_sha256": "7d4de8f1db679c00740cd3b486c16c2d5185d78659785abf0307fc16fdbc1586",
-      "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "target_sha256": "68f66a9e7cf83b6e1bbe183339edbc024d7cb99290a5faddc1574d5352331a96",
+      "target_lf_sha256": "55d161524384a9254202f29f5dae3af4eb38f70a680ee2565334805d75e557db",
+      "changed": true,
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "apps/quant-engine/pyproject.toml",
@@ -3509,10 +3509,10 @@
       "source_sha256": "6bd9f5c1793754252e6c3a6868a23c2bce546894ff5f633bce5cba3784e135d6",
       "source_git_blob_sha256": "922edf1fa49cb8bd6fe9efd9cd9dbcaae0bdcc6e1c6b04fe335893c8732f167e",
       "source_lf_sha256": "922edf1fa49cb8bd6fe9efd9cd9dbcaae0bdcc6e1c6b04fe335893c8732f167e",
-      "target_sha256": "6bd9f5c1793754252e6c3a6868a23c2bce546894ff5f633bce5cba3784e135d6",
-      "target_lf_sha256": "922edf1fa49cb8bd6fe9efd9cd9dbcaae0bdcc6e1c6b04fe335893c8732f167e",
-      "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "target_sha256": "49ccf6883ee0b9a3a9b32d26c457f56ca64b7223652c33fb2b2558f3d5bd5133",
+      "target_lf_sha256": "830eebcb183052cbc8abd38ed40117f898adb2c38953c2f41ea9cf08941f3cc6",
+      "changed": true,
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "apps/web/postcss.config.mjs",
@@ -3567,7 +3567,7 @@
       "target_sha256": "fc351c2e251d4d866bdacded67ea271dc6f3d783da40e0bd91fd2182770bc6db",
       "target_lf_sha256": "4e9a376c31881cdbbc3aef62bcb6d201b2c0b30e6f4664ea1921cf0181712401",
       "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "database/prisma/bootstrap-admin.ts",
@@ -4070,10 +4070,10 @@
       "source_sha256": "0233381a72e4854a9ffbb6bc57f709e1ff2ba42582554bd2c7badaee6318de8d",
       "source_git_blob_sha256": "4c4d1a5b7c23fb9c8229c594d4c2bddfdd1ae495f8d0d25725a6184bf69dcbd3",
       "source_lf_sha256": "4c4d1a5b7c23fb9c8229c594d4c2bddfdd1ae495f8d0d25725a6184bf69dcbd3",
-      "target_sha256": "3843f63893e6f6a0cc294f72903ecf4b02cd25b55cac8f1462d885fe628ab9a2",
-      "target_lf_sha256": "3843f63893e6f6a0cc294f72903ecf4b02cd25b55cac8f1462d885fe628ab9a2",
+      "target_sha256": "965ec84b3f7d21c791f9549a856afe544b1c7d0f5aafc48cea51bfab47b15c23",
+      "target_lf_sha256": "965ec84b3f7d21c791f9549a856afe544b1c7d0f5aafc48cea51bfab47b15c23",
       "changed": true,
-      "reason": "Scoped release branding/documentation or dedicated DB safety prefix; see change register"
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "docs/LOCAL_INSTALLATION_GUIDE.md",
@@ -4103,10 +4103,10 @@
       "source_sha256": "445311dd3d89b1b631e12162678f727f5d6f4fe6e214b2b387308cd1b8b744f6",
       "source_git_blob_sha256": "0a67b9e5a41d927200f494afd424eeba5749d59af24a1b273ad2dc1a24fd01e2",
       "source_lf_sha256": "0a67b9e5a41d927200f494afd424eeba5749d59af24a1b273ad2dc1a24fd01e2",
-      "target_sha256": "697ecee690e67ccbbbf9e43ee8e72886c63e1777e143ff27faef08a1c79cd1de",
-      "target_lf_sha256": "300577f3dcec53c60a2c1023d54bd45ca4aaf847689a182265b938f8b3d1b360",
+      "target_sha256": "c618015cf36969c8aab6a234feb11b9f268e89614b15d6d8728ebb83dd02d90b",
+      "target_lf_sha256": "e8e1be0955e2859609da5f43cf5dee00f5e18c21bbf957b65e0820b1748fd1cf",
       "changed": true,
-      "reason": "Scoped release branding/documentation or dedicated DB safety prefix; see change register"
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "docs/THIRD_PARTY_NOTICES.md",
@@ -4114,10 +4114,10 @@
       "source_sha256": "31211e494ac607d36321a2119f6df8dba3f86fd8e5a509ec9c3200be2ec56611",
       "source_git_blob_sha256": "61fe8f1f546874735d419e4cc26d82e783da1bacec401e9eae6bf40424f5c5f0",
       "source_lf_sha256": "61fe8f1f546874735d419e4cc26d82e783da1bacec401e9eae6bf40424f5c5f0",
-      "target_sha256": "d7376dbfd82b0d68efc27da80e82cfeb8a4eb5ad843c99049c1cd215bb778cca",
-      "target_lf_sha256": "d7376dbfd82b0d68efc27da80e82cfeb8a4eb5ad843c99049c1cd215bb778cca",
+      "target_sha256": "363b4905d30d89ac9713f28b150711168d046f7dbae350cfbe11b744d600aa75",
+      "target_lf_sha256": "363b4905d30d89ac9713f28b150711168d046f7dbae350cfbe11b744d600aa75",
       "changed": true,
-      "reason": "Scoped release branding/documentation or dedicated DB safety prefix; see change register"
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "docs/TROUBLESHOOTING.md",
@@ -4150,7 +4150,7 @@
       "target_sha256": "8bdb2c48b3a9f3b00035d71d3bfcb13f4fbf1795628a32719cff92a7e94fb9cd",
       "target_lf_sha256": "1801c9c3ffb6506c87fb057fe21f388e71a6d7fbadcdbfe3a80bf2a719874c37",
       "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "install-backup-task.cmd",
@@ -4161,7 +4161,7 @@
       "target_sha256": "428721cdaed16385eb5b6618f279240300432d2afc8f280d0a1f8934a0393004",
       "target_lf_sha256": "0ce63e048876e68538003d029c794f8c41793f84cf7783084af470eaf175866a",
       "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "package.json",
@@ -4169,10 +4169,10 @@
       "source_sha256": "0dfc7c1414590e19574cd066a999b08adbbe08be4c665966a349a057199e6e2a",
       "source_git_blob_sha256": "2d0168bac282b15fd73562bb9a23ea72d34a02fd79582328e201e09a8f58f292",
       "source_lf_sha256": "2d0168bac282b15fd73562bb9a23ea72d34a02fd79582328e201e09a8f58f292",
-      "target_sha256": "7ce7eb19f24c0728468d07eb404784aff78b12cbe81961b025e24917afabd890",
-      "target_lf_sha256": "6cf0bf8888d266b8ec43a650867c90d8470fb942aac76a430d354d345908c23e",
+      "target_sha256": "8df02b5851644c8061f78fe957ed4bee667eee7a788b33a1f043211a90ec6477",
+      "target_lf_sha256": "14cadbd09bfd096d7e146198a5c3ddcda33e145b43712e04744f3534d03f3b1d",
       "changed": true,
-      "reason": "Scoped release branding/documentation or dedicated DB safety prefix; see change register"
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "packages/shared/package.json",
@@ -4180,10 +4180,10 @@
       "source_sha256": "fd57467894d728947149aadcd2e5afb6a6b86a31c02a14b23df1651442ccc696",
       "source_git_blob_sha256": "9c8c6333ef435c9aba010adc620d3d1d8e95716b885d43c9c22e2c52b7d7b03c",
       "source_lf_sha256": "9c8c6333ef435c9aba010adc620d3d1d8e95716b885d43c9c22e2c52b7d7b03c",
-      "target_sha256": "fd57467894d728947149aadcd2e5afb6a6b86a31c02a14b23df1651442ccc696",
-      "target_lf_sha256": "9c8c6333ef435c9aba010adc620d3d1d8e95716b885d43c9c22e2c52b7d7b03c",
-      "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "target_sha256": "90f7dec817da4430c9f6689345bdb8f38c1b30284bd37e53a64f3f1610e2e217",
+      "target_lf_sha256": "0fdd11fad9a5ce6de5d91bb5245d14495756f4abf55233c234cb89319001070c",
+      "changed": true,
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "packages/shared/src/data-origin.ts",
@@ -4224,10 +4224,10 @@
       "source_sha256": "621e0ee6ab6868c20829a1839ee60307bc9233324e99b1be7401e409935c9421",
       "source_git_blob_sha256": "62e2c5b2d096bbca8f17bbf190ae53f9423536484283e46e55ad4d2e140cbc60",
       "source_lf_sha256": "62e2c5b2d096bbca8f17bbf190ae53f9423536484283e46e55ad4d2e140cbc60",
-      "target_sha256": "621e0ee6ab6868c20829a1839ee60307bc9233324e99b1be7401e409935c9421",
-      "target_lf_sha256": "62e2c5b2d096bbca8f17bbf190ae53f9423536484283e46e55ad4d2e140cbc60",
-      "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "target_sha256": "ee2a48d4d55b30b532b5bceac19252c2844009e4dba0ea35c117eba15682413b",
+      "target_lf_sha256": "eb3ceac11c05c3fa9f7722e95d99a0660008ea956a43f394dce4521b9b288b53",
+      "changed": true,
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "packages/validators/src/index.ts",
@@ -4315,7 +4315,7 @@
       "target_sha256": "9ccdd07a618d0e44acee6ddbf559e32e965b2060c25e901b0dab41a288803f5a",
       "target_lf_sha256": "3a13494c7689be3e560406f85c5ca5e22ca38ed075cd12b013cbe5cff225d5c6",
       "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "scripts/accept-local.ts",
@@ -4458,7 +4458,7 @@
       "target_sha256": "bf751b721934b35e46c49f685af19921051fc48b2114ba6be89442ab7808a367",
       "target_lf_sha256": "10e2a7f45a1dc0f6692279b3e777e66b91f200e81da1361d48db1de429326318",
       "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "start-dev.cmd",
@@ -4469,7 +4469,7 @@
       "target_sha256": "c854dfe70ac1312acf11305bb88eb8802565c63cd7a44b08396b3beb8efce1a2",
       "target_lf_sha256": "36af8f4e833fdc5cf3d0ec9376a6abc694501e610e53bb94301bd1cddec8995c",
       "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "start-prod.cmd",
@@ -4480,7 +4480,7 @@
       "target_sha256": "a6312f1447ddc728b2e48d51334042b96882d72dfb84df817fae1a0932888f6d",
       "target_lf_sha256": "5073bdcb597e407c8efc570d2e539302f8e7033688a1a7c3942628b242d46700",
       "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "stop-dev.cmd",
@@ -4491,7 +4491,7 @@
       "target_sha256": "9fa1b33ed47d6467175d3eb0b2afe420cbcdb8f76f00de5c5a6dbe35b6804266",
       "target_lf_sha256": "b88b5540bbe8c0b045ec368b36e2e3682427d3801717ae6ff32d0ffb1c202947",
       "changed": false,
-      "reason": "byte-identical exported snapshot"
+      "reason": "MIT license approval, original workspace metadata, current third-party review or publication documentation; no runtime/dependency change"
     },
     {
       "source": "tests/integration/phase-b.integration.test.ts",
@@ -4775,37 +4775,37 @@
   "added_files": [
     {
       "target": "CHANGELOG.md",
-      "target_sha256": "3d61d73c6a208754ccc71ff822bb60f720e5c37b8151372e35e9336279e1c1e9",
+      "target_sha256": "6920186536bbb85f0bb70e0177e5121cce51b5f2e7e41419f02c9682b667bc44",
       "reason": "New independent release documentation or verification helper"
     },
     {
       "target": "docs/EPISODE_007_EVIDENCE_MANIFEST.md",
-      "target_sha256": null,
+      "target_sha256": "044fa98fbbd23afb61829804d343c4867c2ad8d7cd43a0d42f59e9aaac3ab41c",
       "reason": "New independent release documentation or verification helper"
     },
     {
       "target": "docs/PRIVACY_AUDIT_REPORT.md",
-      "target_sha256": null,
+      "target_sha256": "0b21a436813da87ff4f20402c00ca478ef7abe28a5e2ac1bfb8f56cec85d2106",
       "reason": "New independent release documentation or verification helper"
     },
     {
       "target": "docs/REGRESSION_EVIDENCE.json",
-      "target_sha256": null,
+      "target_sha256": "c33f3091ebf8f7002f34543a33e6eb9c802c527d666cd524cc570e3bdd239bdd",
       "reason": "New independent release documentation or verification helper"
     },
     {
       "target": "docs/REGRESSION_REPORT.md",
-      "target_sha256": null,
+      "target_sha256": "5a0515bac6836cd0d3e7b648c49c0dd08ad3404fb36cf4dfef9e2b07d4824fc3",
       "reason": "New independent release documentation or verification helper"
     },
     {
       "target": "docs/RELEASE_MIGRATION_REPORT.md",
-      "target_sha256": null,
+      "target_sha256": "eba0f7c3ed9b14429e81bf80912694fcaf1df309732e524a9ad51513fc465466",
       "reason": "New independent release documentation or verification helper"
     },
     {
       "target": "docs/RELEASE_READINESS_REPORT.md",
-      "target_sha256": null,
+      "target_sha256": "2a3eb11cc25d263e8de0341677cdf6f6a61754c2ab2d7314327d4866384c897b",
       "reason": "New independent release documentation or verification helper"
     },
     {
@@ -4815,19 +4815,30 @@
     },
     {
       "target": "docs/SOURCE_COPY_MANIFEST.md",
-      "target_sha256": null,
+      "target_sha256": "706ebaa1055dd89ddc620aa4d967000351dca04a30f51d31fe5c00041249ce9b",
       "reason": "New independent release documentation or verification helper"
     },
     {
       "target": "docs/XICHUQUANT_PRIVACY_AUDIT.md",
-      "target_sha256": null,
+      "target_sha256": "126b24e2f43dc253f0214d00ca480b4e2fc9a15ea1a3fee22505c1e09e147152",
       "reason": "New independent release documentation or verification helper"
     },
     {
       "target": "scripts/release-verify.py",
-      "target_sha256": "cadd6440455b47dc9a7747085b70574c8bb5d1939292927f98cdba01835c6f78",
+      "target_sha256": "44c1e3b53ed72d8aec7bd545caf936124196f2620cb7d78401fb9a92f30df628",
       "reason": "New independent release documentation or verification helper"
+    },
+    {
+      "target": "docs/FINAL_PUBLICATION_AUDIT.md",
+      "target_sha256": "ade655c4769ef928e059e2accab301eb9ccda4e3b6fef5ec5625de024a96157e",
+      "reason": "Final publication audit"
+    },
+    {
+      "target": "docs/licenses/backtesting-engine-MIT.txt",
+      "target_sha256": "122e1337a52ebee631027875fb292899263806f103a3d481af9c9ed19db43dd8",
+      "reason": "Preserve original upstream MIT copyright and full license for identified strategy adaptation"
     }
   ],
-  "self_reference_note": "Release report/manifest paths are enumerated; their full integrity is covered by the final Git commit rather than self-referential hashes."
+  "self_reference_note": "Every retained/added public file has actual target SHA-256 except this JSON manifest itself. Its existence and exact tracked-file set are required; Git covers its final content. Source hashes remain immutable.",
+  "target_git_root": "c955d79117eeb1182d04a1b7dd01345496a6f017"
 }

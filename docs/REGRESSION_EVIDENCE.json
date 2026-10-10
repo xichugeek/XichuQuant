@@ -94,5 +94,68 @@
   ],
   "raw_logs_distributed": false,
   "docker": "NOT_RUN",
-  "external_paper": "NOT_RUN_NO_ORDER_AUTHORIZATION"
+  "external_paper": "NOT_RUN_NO_ORDER_AUTHORIZATION",
+  "original_round": {
+    "candidate_head": "c955d79117eeb1182d04a1b7dd01345496a6f017",
+    "tests": {
+      "api": 183,
+      "connector": 20,
+      "python": 47,
+      "sql_phase_b": 4,
+      "sql_phase_c": 3,
+      "playwright": 300,
+      "total": 557
+    },
+    "integration_and_windows_evidence_reused_not_rerun": true
+  },
+  "mit_round": {
+    "scope": "License, documentation, manifests and read-only release verification only; runtime configuration, dependencies, business logic and migrations unchanged",
+    "actually_rerun_tests": {
+      "api": 183,
+      "connector": 20,
+      "python": 47,
+      "total": 250
+    },
+    "checks": [
+      {
+        "check": "generate",
+        "result": "PASS",
+        "private_log_sha256": "18116f22f7760843f3a92b1d4180999f0ebcd3d12da37608f2c7c63801a724fe"
+      },
+      {
+        "check": "validate",
+        "result": "PASS",
+        "private_log_sha256": "3eee8835c70956aded417a3cdb68f09e09ec50e8e0f053227045097461e1b438"
+      },
+      {
+        "check": "lint",
+        "result": "PASS",
+        "private_log_sha256": "6ea429a734a503d5c0ac913b38c95e3a8b75eb04bef3ab1b87d09658e79f2ca7"
+      },
+      {
+        "check": "typecheck",
+        "result": "PASS",
+        "private_log_sha256": "f95ad1d990213111222b0d5c26fd80b586434d78dc53dde0b50ff670a8435419"
+      },
+      {
+        "check": "unit",
+        "result": "PASS",
+        "private_log_sha256": "b5cac11729d364f8ba17ab319fb2e607fe46313b581219469fd574853be4a537"
+      },
+      {
+        "check": "build",
+        "result": "PASS",
+        "private_log_sha256": "0abda5947ee37a5db04fbd8276335bda2f55207afb9baf9d73604f3c05580b86"
+      }
+    ],
+    "reused_not_rerun": {
+      "sql_phase_b": 4,
+      "sql_phase_c": 3,
+      "playwright": 300,
+      "windows_installation_18_steps": true,
+      "production_auth_and_demo_backtest_paper_fill": true,
+      "backup_isolated_restore_checkdb": true
+    },
+    "python_warning": "Existing Starlette/httpx TestClient deprecation; no unrelated dependency upgrade"
+  }
 }

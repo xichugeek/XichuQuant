@@ -1,8 +1,16 @@
-# XichuQuant v1.0.0 独立回归报告
+# XichuQuant 回归报告
 
-2026-10-10（Asia/Shanghai），所有命令来自新项目目录与新虚拟环境/依赖；不引用旧 557 项作为通过证据。Broker OFFLINE/DISABLED，外部字段为空，IBKR_TWS_API_READ_ONLY=true。原私人 .env 未载入，原业务数据库未连接。
+## MIT 落地轮次（2026-10-10）
 
-| 检查 | 本轮结果 | 范围 |
+本轮实际重新执行 Prisma Generate、Validate、`corepack pnpm lint`、`typecheck`、`test`、`build`，全部 PASS。重新运行 **250 项测试：API 183、Connector 20、Python 47**，0 失败；Python 保留既有 Starlette/httpx TestClient 弃用警告。生产 Next.js 构建成功。日志独立保存并记录 SHA，没有覆盖前一轮数据库/浏览器/安装证据。
+
+本轮变更仅许可正文、原创包 license 元数据、文档、发行清单与只读校验脚本。版本、依赖、pnpm 锁文件、业务代码、运行配置、Schema 与 19 migrations 未变。SQL B 4、C 3、Playwright 300 项，以及 Windows 安装、生产认证、合成回测、内部 Fill、备份/隔离恢复证据 **复用前一轮，未重跑**。不将历史 557 项写作本轮新执行的数量。下面为前一轮原始验收记录。
+
+## 前一轮独立回归（根提交候选）
+
+2026-10-10（Asia/Shanghai），所有命令来自新项目目录与新虚拟环境/依赖；本段记录根提交候选的独立新执行；MIT 轮次按上文明确复用。Broker OFFLINE/DISABLED，外部字段为空，IBKR_TWS_API_READ_ONLY=true。原私人 .env 未载入，原业务数据库未连接。
+
+| 检查 | 前一轮结果（本轮复用） | 范围 |
 | --- | --- | --- |
 | frozen-lockfile / Python 固定 requirements | PASS | 新安装；未升级依赖/锁文件 |
 | Lint / Typecheck / Build | PASS | 全 workspace、Seed/Admin、Next.js 实际生产构建 |
